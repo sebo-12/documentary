@@ -1,0 +1,268 @@
+[
+  {
+    "id": 1,
+    "narration": "Around 700,000 years ago, people settle the Korean Peninsula. Their first state is Gojoseon.",
+    "tts_text": "Around seven hundred thousand years ago, people settle the Korean Peninsula. Their first state is Go-jo-sun.",
+    "hero_type": "word",
+    "hero_asset": null,
+    "onscreen_text": "GOJOSEON",
+    "cue_word": null,
+    "camera_target": {
+      "place": "Ganghwa",
+      "lat": 37.75,
+      "lon": 126.49
+    },
+    "start": 0.0,
+    "end": 6.714
+  },
+  {
+    "id": 2,
+    "narration": "Three kingdoms rise. Goguryeo, Baekje, and Silla.",
+    "tts_text": "Three kingdoms rise. Go-goo-ryuh, Beck-jay, and Shilla.",
+    "hero_type": "map",
+    "hero_asset": null,
+    "onscreen_text": "GOGURYEO | BAEKJE | SILLA",
+    "cue_word": null,
+    "camera_target": {
+      "place": "Seoul",
+      "lat": 37.57,
+      "lon": 126.98
+    },
+    "start": 7.314,
+    "end": 11.458
+  },
+  {
+    "id": 3,
+    "narration": "Goguryeo's King Gwanggaeto pushes into Manchuria. His stele still stands, over six meters tall.",
+    "tts_text": "Go-goo-ryuh's King Gwahng-geh-toh pushes into Manchuria. His stee-lee still stands, over six meters tall.",
+    "hero_type": "word",
+    "hero_asset": null,
+    "onscreen_text": "GWANGGAETO",
+    "cue_word": null,
+    "camera_target": {
+      "place": "Ji'an",
+      "lat": 41.13,
+      "lon": 126.19
+    },
+    "start": 12.058,
+    "end": 19.282
+  },
+  {
+    "id": 4,
+    "narration": "In 676, Silla drives out Tang forces and unifies most of the peninsula.",
+    "tts_text": "In six seventy-six, Shilla drives out Tahng forces and unifies most of the peninsula.",
+    "hero_type": "number",
+    "hero_asset": null,
+    "onscreen_text": "676",
+    "cue_word": "676",
+    "camera_target": {
+      "place": "Gyeongju",
+      "lat": 35.84,
+      "lon": 129.22
+    },
+    "start": 19.882,
+    "end": 25.282,
+    "cue_time": 20.122,
+    "cue_method": "asr"
+  },
+  {
+    "id": 5,
+    "narration": "In 918, Wang Geon founds Goryeo. The name Korea comes from it.",
+    "tts_text": "In nine eighteen, Wahng Gun founds Goryuh. The name Korea comes from it.",
+    "hero_type": "word",
+    "hero_asset": null,
+    "onscreen_text": "KOREA",
+    "cue_word": null,
+    "camera_target": {
+      "place": "Kaesong",
+      "lat": 37.97,
+      "lon": 126.55
+    },
+    "start": 25.882,
+    "end": 31.049
+  },
+  {
+    "id": 6,
+    "narration": "In 1377, a Goryeo temple prints Jikji, the oldest surviving metal-type book.",
+    "tts_text": "In thirteen seventy-seven, a Goryuh temple prints Jeek-jee, the oldest surviving metal-type book.",
+    "hero_type": "word",
+    "hero_asset": null,
+    "onscreen_text": "JIKJI",
+    "cue_word": null,
+    "camera_target": {
+      "place": "Kaesong",
+      "lat": 37.97,
+      "lon": 126.55
+    },
+    "start": 31.649,
+    "end": 37.628
+  },
+  {
+    "id": 7,
+    "narration": "In 1392, General Yi Seong-gye founds Joseon and makes Seoul its capital.",
+    "tts_text": "In thirteen ninety-two, General Yee Sung-gyeh founds Jo-sun and makes Seoul its capital.",
+    "hero_type": "word",
+    "hero_asset": null,
+    "onscreen_text": "JOSEON",
+    "cue_word": null,
+    "camera_target": {
+      "place": "Seoul",
+      "lat": 37.57,
+      "lon": 126.98
+    },
+    "start": 38.228,
+    "end": 43.726
+  },
+  {
+    "id": 8,
+    "narration": "In 1443, King Sejong creates Hangeul, the Korean alphabet.",
+    "tts_text": "In fourteen forty-three, King Say-jong creates Hahn-gool, the Korean alphabet.",
+    "hero_type": "word",
+    "hero_asset": null,
+    "onscreen_text": "한글",
+    "cue_word": null,
+    "camera_target": {
+      "place": "Seoul",
+      "lat": 37.57,
+      "lon": 126.98
+    },
+    "start": 44.326,
+    "end": 49.268
+  },
+  {
+    "id": 9,
+    "narration": "In 1592, Japan invades. At Myeongnyang in 1597, Yi Sun-sin's 13 ships beat 133.",
+    "tts_text": "In fifteen ninety-two, Japan invades. At Myung-nyahng in fifteen ninety-seven, Yee Soon-shin's thirteen ships beat one hundred thirty-three.",
+    "hero_type": "number",
+    "hero_asset": null,
+    "onscreen_text": "13 vs 133",
+    "cue_word": "13",
+    "camera_target": {
+      "place": "Myeongnyang Strait",
+      "lat": 34.57,
+      "lon": 126.31
+    },
+    "start": 49.868,
+    "end": 58.775,
+    "cue_time": 56.428,
+    "cue_method": "asr"
+  },
+  {
+    "id": 10,
+    "narration": "In 1910, Japan annexes Korea.",
+    "tts_text": "In nineteen ten, Japan annexes Korea.",
+    "hero_type": "word",
+    "hero_asset": null,
+    "onscreen_text": "ANNEXED",
+    "cue_word": "annexes",
+    "camera_target": {
+      "place": "Seoul",
+      "lat": 37.57,
+      "lon": 126.98
+    },
+    "start": 59.375,
+    "end": 62.467,
+    "cue_time": 61.135,
+    "cue_method": "asr"
+  },
+  {
+    "id": 11,
+    "narration": "On March 1, 1919, Koreans declare independence.",
+    "tts_text": "On March first, nineteen nineteen, Koreans declare independence.",
+    "hero_type": "number",
+    "hero_asset": null,
+    "onscreen_text": "1919",
+    "cue_word": "1919",
+    "camera_target": {
+      "place": "Seoul",
+      "lat": 37.57,
+      "lon": 126.98
+    },
+    "start": 63.067,
+    "end": 67.254,
+    "cue_time": 64.187,
+    "cue_method": "asr"
+  },
+  {
+    "id": 12,
+    "narration": "In 1945, Korea is liberated. The 38th parallel splits the peninsula.",
+    "tts_text": "In nineteen forty-five, Korea is liberated. The thirty-eighth parallel splits the peninsula.",
+    "hero_type": "map",
+    "hero_asset": null,
+    "onscreen_text": "38°N",
+    "cue_word": "splits",
+    "camera_target": {
+      "place": "Kaesong",
+      "lat": 37.97,
+      "lon": 126.55
+    },
+    "start": 67.854,
+    "end": 73.807,
+    "cue_time": 72.334,
+    "cue_method": "asr"
+  },
+  {
+    "id": 13,
+    "narration": "In 1950, the Korean War begins. An armistice in 1953 ends the fighting.",
+    "tts_text": "In nineteen fifty, the Korean War begins. An armistice in nineteen fifty-three ends the fighting.",
+    "hero_type": "word",
+    "hero_asset": null,
+    "onscreen_text": "ARMISTICE",
+    "cue_word": null,
+    "camera_target": {
+      "place": "Kaesong",
+      "lat": 37.97,
+      "lon": 126.55
+    },
+    "start": 74.407,
+    "end": 80.937
+  },
+  {
+    "id": 14,
+    "narration": "South Korea rebuilds. Five-year plans and exports drive the Miracle on the Hangang.",
+    "tts_text": "South Korea rebuilds. Five-year plans and exports drive the Miracle on the Hahn Gahng.",
+    "hero_type": "word",
+    "hero_asset": null,
+    "onscreen_text": "MIRACLE ON THE HANGANG",
+    "cue_word": null,
+    "camera_target": {
+      "place": "Seoul",
+      "lat": 37.57,
+      "lon": 126.98
+    },
+    "start": 81.537,
+    "end": 87.498
+  },
+  {
+    "id": 15,
+    "narration": "On June 29, 1987, the ruling party accepts direct presidential elections.",
+    "tts_text": "On June twenty-ninth, nineteen eighty-seven, the ruling party accepts direct presidential elections.",
+    "hero_type": "word",
+    "hero_asset": null,
+    "onscreen_text": "JUNE 29, 1987",
+    "cue_word": null,
+    "camera_target": {
+      "place": "Seoul",
+      "lat": 37.57,
+      "lon": 126.98
+    },
+    "start": 88.098,
+    "end": 93.835
+  },
+  {
+    "id": 16,
+    "narration": "In 2024, Han Kang wins Korea's first Nobel Prize in Literature.",
+    "tts_text": "In twenty twenty-four, Hahn Kahng wins Korea's first Nobel Prize in Literature.",
+    "hero_type": "map",
+    "hero_asset": null,
+    "onscreen_text": "HAN KANG, 2024",
+    "cue_word": null,
+    "camera_target": {
+      "place": "Seoul, pull back over full map",
+      "lat": 37.57,
+      "lon": 126.98
+    },
+    "start": 94.434,
+    "end": 99.378
+  }
+]
