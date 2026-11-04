@@ -8,7 +8,7 @@ import words from "../word_times.json";
 
 export const W = 1920, H = 1080, FPS = 30;
 const BG = "#0A1A26", MAPBLUE = "#2F6F9A", COAST = "#6FA6CC", PAPER = "#EFE9DC", RED = "#E8322B";
-const SERIF = "'Cormorant Garamond'", MONO = "'IBM Plex Mono'", KR = "'Noto Serif KR'";
+const SERIF = "'Cormorant Lining', 'Cormorant Garamond'", MONO = "'IBM Plex Mono'", KR = "'Noto Serif KR'";
 
 // ---------- projection: fixed Mercator, the camera is a 2D transform on top ----------
 const proj = geoMercator().center([127, 38]).scale(3000).translate([0, 0]);
@@ -269,7 +269,7 @@ function drawWorld(g, t) {
   if (l38 > 0) {
     const [x0, y0] = P(LINE38.lon0, 38), [x1] = P(LINE38.lon1, 38);
     g.strokeStyle = RED; g.lineWidth = 4 / z; g.lineCap = "round";
-    g.globalAlpha = 1 - 0.55 * smooth((t - (b(13).start + 1)) / 2);
+    g.globalAlpha = 1 - 0.72 * smooth((t - (b(13).start + 0.5)) / 2);
     g.beginPath(); g.moveTo(x0, y0); g.lineTo(lerp(x0, x1, easeOut(l38)), y0); g.stroke(); g.globalAlpha = 1;
   }
   g.restore();
@@ -388,11 +388,12 @@ function drawCircleNum(g, h, t, a, cy) {
   const p = easeOut((t - h.circle) / 0.5);
   if (p > 0) {
     g.shadowBlur = 0; g.strokeStyle = RED; g.lineWidth = 7; g.lineCap = "round"; g.globalAlpha = a;
-    const rx = w / 2 + 70, ry = fs * 0.42, a0 = -Math.PI * 0.62, sweep = Math.PI * 2.1 * p;
+    const rx = w / 2 + 95, ry = fs * 0.5, a0 = -Math.PI * 0.62, sweep = Math.PI * 2.1 * p;
+    const ccy = base - fs * 0.34; // centre of the lining figures
     g.beginPath();
     for (let k = 0; k <= 80; k++) {
       const th = a0 + sweep * (k / 80), wob = 1 + 0.025 * Math.sin(th * 3 + 1) + 0.04 * (k / 80);
-      const x = W / 2 + Math.cos(th) * rx * wob, y = cy + Math.sin(th) * ry * wob - 6;
+      const x = W / 2 + Math.cos(th) * rx * wob, y = ccy + Math.sin(th) * ry * wob;
       k ? g.lineTo(x, y) : g.moveTo(x, y);
     }
     g.stroke();
