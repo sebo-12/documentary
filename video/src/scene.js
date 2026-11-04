@@ -155,22 +155,30 @@ const HEROES = [
   { kind: "stamp", text: "ANNEXED", t0: cue(10), beat: 10, hy: 0.6 },
   { kind: "circle", text: "1919", t0: cue(11) - 0.3, circle: cue(11), beat: 11, hy: 0.56 },
   { kind: "type", text: "JUNE 29, 1987", t0: wt(15, "june") - 0.05, beat: 15, hy: HY_LOW, width: 0.62 },
-  { kind: "word", text: "HAN KANG, 2024", t0: wt(16, "han") - 0.05, beat: 16, hy: HY_MID, width: 0.6, out: END - 0.9 },
+  { kind: "word", text: "HAN KANG, 2024", t0: wt(16, "han") - 0.05, beat: 16, hy: HY_MID, width: 0.6, out: END - 1.2 },
 ];
 // photos (black-and-white polaroids) and documents (paper) that drop onto the map where the story happens.
 // sx, sy: screen position (fractions) at the moment tRef; box: max display size in px at that moment.
 const OBJECTS = [
-  { img: "dolmen", kind: "polaroid", beat: 1, td: 3.0, sx: 0.5, sy: 0.6, box: [600, 400], rot: -2.5, caption: "GOJOSEON", capT: wt(1, "gojoseon") - 0.05 },
-  { img: "stele", kind: "polaroid", beat: 3, td: wt(3, "guang") - 0.1, sx: 0.5, sy: 0.6, box: [330, 440], rot: 2 },
-  { img: "jikji", kind: "polaroid", beat: 6, td: wt(6, "jeekji") - 0.1, sx: 0.5, sy: 0.6, box: [580, 420], rot: -2 },
-  { img: "gyeongbokgung", kind: "polaroid", beat: 7, td: wt(7, "joseon") - 0.2, sx: 0.44, sy: 0.6, box: [600, 400], rot: -3 },
-  { img: "hunminjeongeum", kind: "doc", beat: 8, td: b(8).start + 0.8, sx: 0.57, sy: 0.6, box: [820, 560], rot: 2, overlay: wt(8, "hangul") - 0.1 },
+  { img: "dolmen", kind: "polaroid", beat: 1, td: 3.0, sx: 0.5, sy: 0.6, box: [760, 500], rot: -2.5, caption: "GOJOSEON", capT: wt(1, "gojoseon") - 0.05 },
+  { img: "stele", kind: "polaroid", beat: 3, td: wt(3, "guang") - 0.1, sx: 0.5, sy: 0.6, box: [400, 520], rot: 2 },
+  { img: "jikji", kind: "polaroid", beat: 6, td: wt(6, "jeekji") - 0.1, sx: 0.5, sy: 0.6, box: [720, 500], rot: -2 },
+  { img: "gyeongbokgung", kind: "polaroid", beat: 7, td: wt(7, "joseon") - 0.2, sx: 0.5, sy: 0.6, box: [760, 500], rot: -3 },
+  { img: "hunminjeongeum", kind: "doc", beat: 8, td: b(8).start + 0.8, sx: 0.5, sy: 0.6, box: [860, 600], rot: 2, overlay: wt(8, "hangul") - 0.1 },
   { img: "annexation_treaty", kind: "doc", beat: 10, td: b(10).start + 0.7, sx: 0.5, sy: 0.6, box: [820, 560], rot: -1.5 },
   { img: "declaration", kind: "doc", beat: 11, td: b(11).start + 0.35, sx: 0.5, sy: 0.56, box: [1100, 520], rot: 1, overlay: cue(11) - 0.3 },
   { img: "armistice", kind: "doc", beat: 13, td: wt(13, "armistice") - 0.15, sx: 0.5, sy: 0.6, box: [480, 600], rot: 1.5 },
-  { img: "expressway", kind: "polaroid", beat: 14, td: b(14).start + 0.9, sx: 0.5, sy: 0.6, box: [600, 400], rot: -2, tRef: (b(14).start + b(14).end) / 2 },
+  { img: "expressway", kind: "polaroid", beat: 14, td: b(14).start + 0.9, sx: 0.5, sy: 0.6, box: [760, 500], rot: -2, tRef: (b(14).start + b(14).end) / 2 },
 ];
 for (const o of OBJECTS) o.t1 = b(o.beat).end + 0.5;
+// closing shot: screen position (at the last frame) and the story place each thumbnail links to
+const PL = { ganghwa: [126.49, 37.75], jian: [126.19, 41.13], kaesong: [126.55, 37.97], seoul: [126.98, 37.57] };
+const FINAL = {
+  stele: [0.16, 0.22, PL.jian], dolmen: [0.16, 0.45, PL.ganghwa], jikji: [0.16, 0.68, PL.kaesong], declaration: [0.33, 0.86, PL.seoul],
+  gyeongbokgung: [0.84, 0.22, PL.seoul], hunminjeongeum: [0.84, 0.42, PL.seoul], annexation_treaty: [0.84, 0.62, PL.seoul],
+  expressway: [0.84, 0.83, PL.seoul], armistice: [0.66, 0.86, PL.kaesong],
+};
+const FINAL_T0 = END - 1.65; // as the last hero fades
 for (const h of HEROES) h.t1 = h.out ?? (b(h.beat).end + 0.5);
 const objLive = (o, t) => clamp((t - o.td) / 0.25) * (1 - smooth((t - (o.t1 - 0.45)) / 0.45));
 const heroAlpha = (h, t) => clamp((t - h.t0) / 0.25) * (1 - smooth((t - (h.t1 - 0.45)) / 0.45));
@@ -232,6 +240,11 @@ function drawClip(g, x, y) { // a steel paper clip over the top edge
   g.beginPath(); g.moveTo(7, 88); g.lineTo(7, 16); g.stroke();
   g.restore();
 }
+function anchorFinal(o, i) {
+  const [fx, fy, place] = FINAL[o.img], cam = camera(FINAL_T0 + 0.9), z = W / cam[2];
+  o.fwx = cam[0] + (fx * W - W / 2) / z; o.fwy = cam[1] + (fy * H - H / 2) / z; o.fz = z;
+  o.fk = Math.min(210 / o.cw, 150 / o.ch); o.place = P(...place); o.ft = FINAL_T0 + i * 0.07;
+}
 function anchorObject(o) {
   const tr = o.tRef ?? (o.td + 0.6), cam = camera(tr), z = W / cam[2];
   o.wx = cam[0] + (o.sx * W - W / 2) / z; o.wy = cam[1] + (o.sy * H - H / 2) / z; o.zRef = z;
@@ -250,7 +263,7 @@ export function init() {
   }
   for (let i = 0; i < 46; i++) dust.push({ x: r() * W, y: r() * H, vx: (r() - 0.5) * 6, vy: -2 - r() * 5, s: 0.8 + r() * 2.2, a: 0.05 + r() * 0.16, ph: r() * 6.28, par: 0.08 + r() * 0.2 });
   stampCanvas = makeStamp();
-  for (const o of OBJECTS) { prerenderObject(o); anchorObject(o); }
+  OBJECTS.forEach((o, i) => { prerenderObject(o); anchorObject(o); anchorFinal(o, i); });
 }
 
 function makeStamp() {
@@ -299,8 +312,8 @@ function drawObjects(g, t, cam, dim) {
   const zNow = W / cam[2];
   const rotCam = (0.14 * Math.PI / 180) * noise1(t + 23, 1.4, 2.8, 0.2);
   for (const o of OBJECTS) {
-    if (t < o.td) continue;
-    const p = easeOut((t - o.td) / 0.45), a = clamp((t - o.td) / 0.12);
+    if (t < o.td || t > o.t1) continue;
+    const p = easeOut((t - o.td) / 0.45), a = clamp((t - o.td) / 0.12) * (1 - smooth((t - (o.t1 - 0.45)) / 0.45));
     const [sx, sy] = toScreen(cam, t, o.wx, o.wy);
     const sc = zNow / o.zRef * (1 + 0.1 * (1 - p));
     g.save();
@@ -317,10 +330,31 @@ function drawObjects(g, t, cam, dim) {
       chars.forEach((c, i) => { const ci = clamp((t - o.capT - i * 0.045) / 0.2); if (ci > 0) { g.globalAlpha = a * ci; g.fillText(c, x, -o.ch / 2 + o.capY); } x += ws[i]; });
       g.globalAlpha = a;
     }
-    // darken objects that are not the current hero, and documents under a typed overlay
-    let shade = dim * (1 - objLive(o, t));
+    // darken documents under a typed overlay
+    let shade = 0;
     if (o.overlay) shade = Math.max(shade, 0.6 * clamp((t - o.overlay) / 0.3) * objLive(o, t));
     if (shade > 0.001) { g.globalAlpha = shade * 0.62; g.fillStyle = "rgb(8,20,30)"; g.fillRect(-o.cw / 2 - 2, -o.ch / 2 - 2, o.cw + 4, o.ch + 4); }
+    g.restore();
+  }
+}
+
+function drawFinal(g, t, cam) {
+  if (t < FINAL_T0) return;
+  const zNow = W / cam[2];
+  let heroDim = 0; for (const h of HEROES) heroDim = Math.max(heroDim, heroAlpha(h, t));
+  for (const o of OBJECTS) {
+    if (t < o.ft) continue;
+    const p = easeOut((t - o.ft) / 0.4), a = clamp((t - o.ft) / 0.2);
+    const [sx, sy] = toScreen(cam, t, o.fwx, o.fwy), [px, py] = toScreen(cam, t, ...o.place);
+    // red connector to the place, drawn on
+    const lp = easeOut((t - o.ft - 0.15) / 0.5);
+    if (lp > 0) { g.save(); g.strokeStyle = RED; g.globalAlpha = 0.75 * (1 - 0.6 * heroDim); g.lineWidth = 2; g.beginPath(); g.moveTo(sx, sy); g.lineTo(lerp(sx, px, lp), lerp(sy, py, lp)); g.stroke(); g.restore(); }
+    const sc = (zNow / o.fz) * o.fk * (1 + 0.15 * (1 - p));
+    g.save(); g.translate(sx, sy - 20 * (1 - p)); g.rotate(o.rot * Math.PI / 180); g.scale(sc, sc);
+    g.globalAlpha = a; g.shadowColor = "rgba(0,4,8,0.6)"; g.shadowBlur = 14 / sc * 0.5; g.shadowOffsetY = 6 / sc * 0.5;
+    g.drawImage(o.canvas, -o.cw / 2 - o.pad, -o.ch / 2 - o.pad, o.canvas.width / o.Q, o.canvas.height / o.Q);
+    g.shadowColor = "transparent";
+    if (heroDim > 0) { g.globalAlpha = 0.55 * heroDim; g.fillStyle = "rgb(8,20,30)"; g.fillRect(-o.cw / 2 - 2, -o.ch / 2 - 2, o.cw + 4, o.ch + 4); }
     g.restore();
   }
 }
@@ -410,6 +444,7 @@ function drawWorld(g, t) {
   const dim = dimAt(t);
   if (dim > 0) { g.fillStyle = `rgba(8,20,30,${0.5 * dim})`; g.fillRect(0, 0, W, H); }
   drawObjects(g, t, cam, dim);
+  drawFinal(g, t, cam);
 }
 
 function strokePartial(g, pts, s) {
