@@ -96,6 +96,13 @@ async function video(width, outdir, endTime) {
 }
 
 async function finish(outfile, { silent, stamp, audioDur, thud }) {
+  // full mix (narration + ducked music + sound effects) built by audio/build_audio.py and audio/mix.sh
+  const mix = process.env.MIX;
+  if (mix) {
+    execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-i", silent, "-i", mix, "-map", "0:v", "-map", "1:a", "-c:v", "copy",
+      "-af", `atrim=0:${audioDur.toFixed(3)}`, "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", outfile]);
+    console.log("wrote", outfile); return;
+  }
   const ms = Math.round(stamp * 1000);
   execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-i", silent, "-i", wav, "-f", "lavfi", "-i", thud,
     "-filter_complex", `[2:a]lowpass=f=180,adelay=${ms}|${ms},volume=0.9[th];[1:a][th]amix=inputs=2:duration=first:normalize=0,atrim=0:${audioDur.toFixed(3)}[a]`,

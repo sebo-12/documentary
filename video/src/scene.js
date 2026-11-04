@@ -634,3 +634,30 @@ export function drawFrame(ctx, t, scale = 1) {
   ctx.restore();
   ctx.setTransform(1, 0, 0, 1, 0, 0);
 }
+
+// ---------- sound cue list (used by the audio build, not by the picture) ----------
+export function audioEvents() {
+  const ev = [];
+  for (let i = 0; i + 1 < ST.length; i++) { // camera moves
+    const s = ST[i], n = ST[i + 1];
+    if (n.arrive > DURATION) { ev.push({ type: "whoosh", t: s.depart, dur: DURATION - s.depart, soft: 1 }); continue; }
+    if (s.name === "Han0") continue;
+    ev.push({ type: "whoosh", t: s.depart, dur: n.arrive - s.depart });
+  }
+  for (const p of PINS) ev.push({ type: "pin", t: p.on });
+  for (const o of OBJECTS) {
+    ev.push({ type: "paper", t: o.td + 0.3 });
+    if (o.caption) [...o.caption].forEach((c, i) => ev.push({ type: "key", t: o.capT + i * 0.045 }));
+    ev.push({ type: "paper_soft", t: o.ft + 0.25 });
+  }
+  for (const h of HEROES) {
+    if (h.kind === "type") [...h.text].forEach((c, i) => { if (c !== " ") ev.push({ type: "key", t: h.t0 + i * 0.075 }); });
+    if (h.kind === "hangeul") for (let i = 0; i < 6; i++) ev.push({ type: "key", t: h.t0 + i * 0.085 });
+    if (h.kind === "circle") ev.push({ type: "pen", t: h.circle, dur: 0.5 });
+    if (h.kind === "ships") { ev.push({ type: "slam", t: h.t0 + 0.11 }); ev.push({ type: "paper_soft", t: h.t133 }); }
+    if (h.kind === "stamp") ev.push({ type: "stamp", t: h.t0 + 0.11 });
+  }
+  ev.push({ type: "pen", t: LINE38.t0, dur: 0.5 });
+  ev.push({ type: "pen", t: TERR_IN + 0.3, dur: 1.3, soft: 1 });
+  return ev.sort((a, b) => a.t - b.t);
+}

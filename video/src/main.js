@@ -1,4 +1,5 @@
-import { init, drawFrame, setDuration, setImages, camSpeed, IMAGE_NAMES, W, H, FPS } from "./scene.js";
+import { init, drawFrame, setDuration, setImages, camSpeed, audioEvents, IMAGE_NAMES, W, H, FPS } from "./scene.js";
+window.audioEvents = audioEvents;
 window.camSpeed = camSpeed;
 let canvas, ctx, scale = 1;
 async function loadImage(name) {
