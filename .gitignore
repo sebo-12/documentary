@@ -1,1 +1,5 @@
 *.wav
+node_modules/
+video/dist/
+out/test/
+out/final/
