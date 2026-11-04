@@ -24,7 +24,7 @@ const DUR = wavDuration(wav);
 const NFRAMES = Math.round(DUR * FPS);
 
 async function openPages(n, width) {
-  const browser = await chromium.launch({ args: ["--disable-gpu-vsync", "--disable-frame-rate-limit"] });
+  const browser = await chromium.launch({ args: ["--disable-gpu-vsync", "--disable-frame-rate-limit", "--allow-file-access-from-files"] });
   const pages = [];
   for (let i = 0; i < n; i++) {
     const page = await browser.newPage();

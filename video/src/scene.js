@@ -63,21 +63,21 @@ export function setDuration(d) { DURATION = d; }
 
 const b = (i) => beat(i);
 station(126.0, 43.6, 15, 0.5, 0, 0.6, "north");
-station(126.49, 37.75, 2.6, 0.32, 3.8, b(1).end - 0.6, "Ganghwa");
+station(126.49, 37.75, 2.6, 0.24, 3.8, b(1).end - 0.6, "Ganghwa");
 station(127.4, 38.3, 10.6, 0.5, b(2).start + 1.4, b(2).end - 0.3, "peninsula");
-station(126.19, 41.13, 3.2, 0.32, b(3).start + 1.6, b(3).end - 0.6, "Ji'an");
+station(126.19, 41.13, 3.2, 0.24, b(3).start + 1.6, b(3).end - 0.6, "Ji'an");
 station(129.22, 35.84, 3.2, 0.32, b(4).start + 2.0, b(4).end - 0.4, "Gyeongju");
-station(126.55, 37.97, 2.6, 0.32, b(5).start + 2.0, b(6).end - 0.3, "Kaesong");
-station(126.98, 37.57, 2.6, 0.32, b(7).start + 1.4, b(8).end - 0.3, "Seoul");
+station(126.55, 37.97, 2.6, 0.24, b(5).start + 2.0, b(6).end - 0.3, "Kaesong");
+station(126.98, 37.57, 2.6, 0.24, b(7).start + 1.4, b(8).end - 0.3, "Seoul");
 station(126.31, 34.57, 2.4, 0.32, b(9).start + 3.2, b(9).end - 0.6, "Myeongnyang");
-station(126.98, 37.57, 3.0, 0.32, b(10).start + 1.5, b(10).end - 0.2, "Seoul2");
-station(124.6, 34.5, 12.5, 0.5, b(11).start + 2.2, b(11).end - 0.3, "Shanghai");
+station(126.98, 37.57, 3.0, 0.24, b(10).start + 1.5, b(10).end - 0.6, "Seoul2");
+station(124.6, 34.5, 12.5, 0.5, b(11).start + 1.0, b(11).end - 0.3, "Shanghai");
 station(127.4, 38.0, 4.6, 0.5, b(12).start + 2.6, b(12).end - 0.2, "38th");
-station(126.55, 37.97, 3.0, 0.32, b(13).start + 1.6, b(13).end - 0.5, "Kaesong2");
+station(126.55, 37.97, 3.0, 0.24, b(13).start + 1.6, b(13).end - 0.5, "Kaesong2");
 // Han River, east to west through Seoul (camera path only, nothing drawn)
 const HAN = [[127.33, 37.55], [127.17, 37.53], [127.03, 37.52], [126.93, 37.535], [126.83, 37.57]];
-station(127.33, 37.55, 1.7, 0.32, b(14).start + 0.9, b(14).start + 1.1, "Han0");
-station(126.98, 37.57, 3.2, 0.32, b(15).start + 1.2, b(15).end - 0.2, "Seoul3");
+station(127.33, 37.55, 1.7, 0.24, b(14).start + 0.9, b(14).start + 1.1, "Han0");
+station(126.98, 37.57, 3.2, 0.24, b(15).start + 1.2, b(15).end - 0.2, "Seoul3");
 // arrives after the film ends, so the closing pull back is still gliding at the last frame
 station(125.6, 37.6, 18.5, 0.5, END + 2.5, END + 10, "final");
 
@@ -148,22 +148,31 @@ const PINS = [
 // each: kind, text, t0 (appears), t1 (gone), hy (screen y fraction of its centre)
 const HY_LOW = 0.665, HY_MID = 0.52;
 const HEROES = [
-  { kind: "word", text: "GOJOSEON", t0: wt(1, "gojoseon") - 0.05, beat: 1, hy: HY_LOW },
-  { kind: "word", text: "GWANGGAETO", t0: wt(3, "guang") - 0.05, beat: 3, hy: HY_LOW },
   { kind: "circle", text: "676", t0: b(4).start - 0.05, circle: cue(4), beat: 4, hy: HY_LOW },
   { kind: "type", text: "KOREA", t0: wt(5, "korea") - 0.08, beat: 5, hy: HY_LOW, width: 0.66 },
-  { kind: "word", text: "JIKJI", t0: wt(6, "jeekji") - 0.05, beat: 6, hy: HY_LOW, width: 0.5 },
-  { kind: "word", text: "JOSEON", t0: wt(7, "joseon") - 0.05, beat: 7, hy: HY_LOW, width: 0.55 },
-  { kind: "hangeul", text: "한글", t0: wt(8, "hangul") - 0.1, beat: 8, hy: HY_LOW },
+  { kind: "hangeul", text: "한글", t0: wt(8, "hangul") - 0.1, beat: 8, hy: 0.6 },
   { kind: "ships", t0: cue(9), t133: wt(9, "133"), beat: 9, hy: HY_LOW },
-  { kind: "stamp", text: "ANNEXED", t0: cue(10), beat: 10, hy: 0.62 },
-  { kind: "circle", text: "1919", t0: wt(11, "march") - 0.05, circle: cue(11), beat: 11, hy: HY_MID },
-  { kind: "word", text: "ARMISTICE", t0: wt(13, "armistice") - 0.05, beat: 13, hy: HY_LOW },
-  { kind: "word", text: "MIRACLE ON THE HANGANG", t0: wt(14, "miracle") - 0.05, beat: 14, hy: HY_LOW, width: 0.68 },
+  { kind: "stamp", text: "ANNEXED", t0: cue(10), beat: 10, hy: 0.6 },
+  { kind: "circle", text: "1919", t0: cue(11) - 0.3, circle: cue(11), beat: 11, hy: 0.56 },
   { kind: "type", text: "JUNE 29, 1987", t0: wt(15, "june") - 0.05, beat: 15, hy: HY_LOW, width: 0.62 },
   { kind: "word", text: "HAN KANG, 2024", t0: wt(16, "han") - 0.05, beat: 16, hy: HY_MID, width: 0.6, out: END - 0.9 },
 ];
+// photos (black-and-white polaroids) and documents (paper) that drop onto the map where the story happens.
+// sx, sy: screen position (fractions) at the moment tRef; box: max display size in px at that moment.
+const OBJECTS = [
+  { img: "dolmen", kind: "polaroid", beat: 1, td: 3.0, sx: 0.5, sy: 0.6, box: [600, 400], rot: -2.5, caption: "GOJOSEON", capT: wt(1, "gojoseon") - 0.05 },
+  { img: "stele", kind: "polaroid", beat: 3, td: wt(3, "guang") - 0.1, sx: 0.5, sy: 0.6, box: [330, 440], rot: 2 },
+  { img: "jikji", kind: "polaroid", beat: 6, td: wt(6, "jeekji") - 0.1, sx: 0.5, sy: 0.6, box: [580, 420], rot: -2 },
+  { img: "gyeongbokgung", kind: "polaroid", beat: 7, td: wt(7, "joseon") - 0.2, sx: 0.44, sy: 0.6, box: [600, 400], rot: -3 },
+  { img: "hunminjeongeum", kind: "doc", beat: 8, td: b(8).start + 0.8, sx: 0.57, sy: 0.6, box: [820, 560], rot: 2, overlay: wt(8, "hangul") - 0.1 },
+  { img: "annexation_treaty", kind: "doc", beat: 10, td: b(10).start + 0.7, sx: 0.5, sy: 0.6, box: [820, 560], rot: -1.5 },
+  { img: "declaration", kind: "doc", beat: 11, td: b(11).start + 0.35, sx: 0.5, sy: 0.56, box: [1100, 520], rot: 1, overlay: cue(11) - 0.3 },
+  { img: "armistice", kind: "doc", beat: 13, td: wt(13, "armistice") - 0.15, sx: 0.5, sy: 0.6, box: [480, 600], rot: 1.5 },
+  { img: "expressway", kind: "polaroid", beat: 14, td: b(14).start + 0.9, sx: 0.5, sy: 0.6, box: [600, 400], rot: -2, tRef: (b(14).start + b(14).end) / 2 },
+];
+for (const o of OBJECTS) o.t1 = b(o.beat).end + 0.5;
 for (const h of HEROES) h.t1 = h.out ?? (b(h.beat).end + 0.5);
+const objLive = (o, t) => clamp((t - o.td) / 0.25) * (1 - smooth((t - (o.t1 - 0.45)) / 0.45));
 const heroAlpha = (h, t) => clamp((t - h.t0) / 0.25) * (1 - smooth((t - (h.t1 - 0.45)) / 0.45));
 
 // territory label times
@@ -177,6 +186,56 @@ const LINE38 = { t0: cue(12), lon0: 124.2, lon1: 129.7 };
 
 // ---------- assets built once ----------
 let grain = [], dust = [], stampCanvas, glowC, worldC, tmpC;
+let IMAGES = {};
+export const IMAGE_NAMES = ["dolmen", "stele", "jikji", "gyeongbokgung", "hunminjeongeum", "annexation_treaty", "declaration", "armistice", "expressway"];
+export function setImages(m) { IMAGES = m; }
+const PAPERC = "#F1ECE2";
+function prerenderObject(o) {
+  const im = IMAGES[o.img]; const iw = im.width, ih = im.height;
+  const k = Math.min(o.box[0] / iw, o.box[1] / ih); // display size at tRef
+  const Q = 1.5; // supersample so pull-ins stay sharp
+  const dw = Math.round(iw * k), dh = Math.round(ih * k);
+  const r = rng(o.img.length * 7 + 3);
+  if (o.kind === "polaroid") {
+    const bs = 24, bb = 92, pad = 70;
+    const cw = dw + bs * 2, ch = dh + bs + bb;
+    const c = new OffscreenCanvas(Math.ceil((cw + pad * 2) * Q), Math.ceil((ch + pad * 2) * Q)), g = c.getContext("2d");
+    g.scale(Q, Q); g.translate(pad, pad);
+    g.fillStyle = PAPERC; g.fillRect(0, 0, cw, ch);
+    g.filter = "grayscale(1) contrast(1.12) brightness(1.03)"; g.drawImage(im, bs, bs, dw, dh); g.filter = "none";
+    g.strokeStyle = "rgba(0,0,0,0.25)"; g.lineWidth = 1; g.strokeRect(bs + 0.5, bs + 0.5, dw - 1, dh - 1);
+    for (let i = 0; i < 900; i++) { g.fillStyle = `rgba(90,80,60,${0.03 + r() * 0.05})`; g.fillRect(r() * cw, r() * ch, 1.2, 1.2); }
+    drawClip(g, cw * 0.18, -8);
+    o.canvas = c; o.cw = cw; o.ch = ch; o.pad = pad; o.Q = Q; o.capY = dh + bs + bb * 0.56;
+  } else {
+    const pad = 40, cw = dw, ch = dh;
+    const c = new OffscreenCanvas(Math.ceil((cw + pad * 2) * Q), Math.ceil((ch + pad * 2) * Q)), g = c.getContext("2d");
+    g.scale(Q, Q); g.translate(pad, pad);
+    const path = new Path2D(), J = () => (r() - 0.5) * 3.2, step = 10;
+    path.moveTo(J(), J());
+    for (let x = step; x < cw; x += step) path.lineTo(x, J());
+    for (let y = 0; y < ch; y += step) path.lineTo(cw + J(), y);
+    for (let x = cw; x > 0; x -= step) path.lineTo(x, ch + J());
+    for (let y = ch; y > 0; y -= step) path.lineTo(J(), y);
+    path.closePath();
+    g.save(); g.clip(path); g.fillStyle = PAPERC; g.fillRect(-5, -5, cw + 10, ch + 10); g.drawImage(im, 0, 0, cw, ch); g.restore();
+    o.canvas = c; o.cw = cw; o.ch = ch; o.pad = pad; o.Q = Q;
+  }
+}
+function drawClip(g, x, y) { // a steel paper clip over the top edge
+  g.save(); g.translate(x, y); g.rotate(-0.12);
+  const loop = (w, h, off) => { g.beginPath(); g.moveTo(off, h); g.lineTo(off, w / 2); g.arc(off + w / 2, w / 2, w / 2, Math.PI, 0); g.lineTo(off + w, h - w / 2); };
+  g.lineCap = "round"; g.shadowColor = "rgba(0,0,0,0.35)"; g.shadowBlur = 4; g.shadowOffsetY = 2;
+  g.strokeStyle = "#9AA4AB"; g.lineWidth = 4.5;
+  g.beginPath(); g.moveTo(8, 92); g.lineTo(8, 14); g.arc(20, 14, 12, Math.PI, 0); g.lineTo(32, 78); g.arc(22, 78, 10, 0, Math.PI); g.lineTo(12, 26); g.arc(20, 26, 8, Math.PI, 0); g.lineTo(28, 66); g.stroke();
+  g.shadowColor = "transparent"; g.strokeStyle = "rgba(255,255,255,0.55)"; g.lineWidth = 1.4;
+  g.beginPath(); g.moveTo(7, 88); g.lineTo(7, 16); g.stroke();
+  g.restore();
+}
+function anchorObject(o) {
+  const tr = o.tRef ?? (o.td + 0.6), cam = camera(tr), z = W / cam[2];
+  o.wx = cam[0] + (o.sx * W - W / 2) / z; o.wy = cam[1] + (o.sy * H - H / 2) / z; o.zRef = z;
+}
 export function init() {
   const land = feature(land50, land50.objects.land);
   LAND = new Path2D(pathStr(land));
@@ -191,6 +250,7 @@ export function init() {
   }
   for (let i = 0; i < 46; i++) dust.push({ x: r() * W, y: r() * H, vx: (r() - 0.5) * 6, vy: -2 - r() * 5, s: 0.8 + r() * 2.2, a: 0.05 + r() * 0.16, ph: r() * 6.28, par: 0.08 + r() * 0.2 });
   stampCanvas = makeStamp();
+  for (const o of OBJECTS) { prerenderObject(o); anchorObject(o); }
 }
 
 function makeStamp() {
@@ -228,6 +288,42 @@ const toScreen = (cam, t, x, y) => {
   const dx = (x - cam[0]) * z, dy = (y - cam[1]) * z, c = Math.cos(rot), s = Math.sin(rot);
   return [W / 2 + hx + dx * c - dy * s, H / 2 + hy + dx * s + dy * c];
 };
+
+function dimAt(t) {
+  let d = 0;
+  for (const h of HEROES) d = Math.max(d, heroAlpha(h, t));
+  for (const o of OBJECTS) d = Math.max(d, objLive(o, t));
+  return d;
+}
+function drawObjects(g, t, cam, dim) {
+  const zNow = W / cam[2];
+  const rotCam = (0.14 * Math.PI / 180) * noise1(t + 23, 1.4, 2.8, 0.2);
+  for (const o of OBJECTS) {
+    if (t < o.td) continue;
+    const p = easeOut((t - o.td) / 0.45), a = clamp((t - o.td) / 0.12);
+    const [sx, sy] = toScreen(cam, t, o.wx, o.wy);
+    const sc = zNow / o.zRef * (1 + 0.1 * (1 - p));
+    g.save();
+    g.translate(sx, sy - 70 * (1 - p) * sc); g.rotate(rotCam + (o.rot + 5 * (1 - p)) * Math.PI / 180); g.scale(sc, sc);
+    g.globalAlpha = a;
+    g.shadowColor = "rgba(0,4,8,0.6)"; g.shadowBlur = (16 + 34 * (1 - p)) * sc; g.shadowOffsetY = (10 + 34 * (1 - p)) * sc;
+    const x0 = -o.cw / 2 - o.pad, y0 = -o.ch / 2 - o.pad;
+    g.drawImage(o.canvas, x0, y0, o.canvas.width / o.Q, o.canvas.height / o.Q);
+    g.shadowColor = "transparent";
+    if (o.caption && t >= o.capT) { // caption written on the polaroid strip, letter by letter
+      g.font = `600 64px ${SERIF}`; g.letterSpacing = "5px"; g.textAlign = "left"; g.textBaseline = "middle"; g.fillStyle = "#1C2730";
+      const chars = [...o.caption], ws = chars.map((c) => g.measureText(c).width), tot = ws.reduce((x, y) => x + y, 0);
+      let x = -tot / 2;
+      chars.forEach((c, i) => { const ci = clamp((t - o.capT - i * 0.045) / 0.2); if (ci > 0) { g.globalAlpha = a * ci; g.fillText(c, x, -o.ch / 2 + o.capY); } x += ws[i]; });
+      g.globalAlpha = a;
+    }
+    // darken objects that are not the current hero, and documents under a typed overlay
+    let shade = dim * (1 - objLive(o, t));
+    if (o.overlay) shade = Math.max(shade, 0.6 * clamp((t - o.overlay) / 0.3) * objLive(o, t));
+    if (shade > 0.001) { g.globalAlpha = shade * 0.62; g.fillStyle = "rgb(8,20,30)"; g.fillRect(-o.cw / 2 - 2, -o.ch / 2 - 2, o.cw + 4, o.ch + 4); }
+    g.restore();
+  }
+}
 
 function drawWorld(g, t) {
   const cam = camera(t);
@@ -311,6 +407,9 @@ function drawWorld(g, t) {
       g.fillStyle = PAPER; g.shadowColor = "rgba(5,14,22,0.95)"; g.shadowBlur = 16; g.fillText("38°N", sx + 24, sy); g.restore();
     }
   }
+  const dim = dimAt(t);
+  if (dim > 0) { g.fillStyle = `rgba(8,20,30,${0.5 * dim})`; g.fillRect(0, 0, W, H); }
+  drawObjects(g, t, cam, dim);
 }
 
 function strokePartial(g, pts, s) {
@@ -476,10 +575,6 @@ export function drawFrame(ctx, t, scale = 1) {
   }
   ctx.restore();
 
-  // dim the map behind a hero
-  let dim = 0;
-  for (const h of HEROES) dim = Math.max(dim, heroAlpha(h, t));
-  if (dim > 0) { ctx.fillStyle = `rgba(8,20,30,${0.5 * dim})`; ctx.fillRect(0, 0, W, H); }
 
   drawHeroes(ctx, t);
 
