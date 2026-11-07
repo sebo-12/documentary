@@ -1,0 +1,8 @@
+*.wav
+node_modules/
+video/dist/
+out/test/
+out/final/
+out/*.log
+out/contact-sheet.png
+out/final_ink/

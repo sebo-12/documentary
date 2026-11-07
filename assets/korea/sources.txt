@@ -1,0 +1,15 @@
+IMAGE CREDITS (Wikimedia Commons)
+
+dolmen.jpg (beat 1): Dolmen on Ganghwa Island. Taewangkorea. CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0). https://commons.wikimedia.org/wiki/File:Example_of_a_northern-style_dolmen_at_Ganghwa_Island.jpg
+stele.jpg (beat 3): Gwanggaeto Stele, Ji'an. Yumeto. CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0). https://commons.wikimedia.org/wiki/File:20230605_Stela_for_Gwanggaeto.jpg
+jikji.jpg (beat 6): Jikji, pages. Unknown author. Public domain. https://commons.wikimedia.org/wiki/File:Jikji_pages.jpg
+gyeongbokgung.jpg (beat 7): Geunjeongjeon Hall, Gyeongbokgung Palace. Brady Bellini. CC0 (http://creativecommons.org/publicdomain/zero/1.0/deed.en). https://commons.wikimedia.org/wiki/File:Gyeongbokgung(palace)_Geunjeongjeon(hall).jpg
+hunminjeongeum.jpg (beat 8): Hunminjeongeum Haerye. Government of Joseon. Public domain. https://commons.wikimedia.org/wiki/File:Hunminjeongeum_Haerye_03.jpg
+annexation_treaty.jpg (beat 10): Japan-Korea Annexation Treaty (cropped to one page). Empire of Japan, Korean Empire. Public domain. https://commons.wikimedia.org/wiki/File:Japan%E2%80%93Korea_Annexation_Treaty_1.jpg
+declaration.jpg (beat 11): Proclamation of Korean Independence, 1919. 민족대표 33人. Public domain. https://commons.wikimedia.org/wiki/File:The_Proclamation_of_Korean_Independence.jpg
+armistice.jpg (beat 13): Korean Armistice Agreement, Chinese text, 1953. United States Department of State. Public domain. https://commons.wikimedia.org/wiki/File:Korean_Armistice_Agreement_in_Chinese_(1953).jpg
+expressway.jpg (beat 14): Gyeongbu Expressway. Trainholic. CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0). https://commons.wikimedia.org/wiki/File:Gyeongbu_Express_Way.jpg
+
+Photos are shown converted to black and white. CC BY-SA images are adapted (cropped, converted) under the same license.
+Map: Natural Earth (public domain), via the world-atlas npm package.
+Fonts: Cormorant Garamond, IBM Plex Mono, Noto Serif KR (SIL Open Font License).
