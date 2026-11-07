@@ -13,6 +13,7 @@ rng = np.random.default_rng(7)
 events = json.load(open(sys.argv[1]))
 DUR = float(sys.argv[2])
 OUT = sys.argv[3]
+INK = len(sys.argv) > 4 and sys.argv[4] == "ink"
 N = int(np.ceil(DUR * SR)) + SR  # one second of tail room, trimmed later
 
 
@@ -189,6 +190,59 @@ def thud(n_s=0.9, f0=48, f1=130, slap=0.0):
     return x / np.abs(x).max()
 
 
+# ---------------------------------------------------------------- ink-wash score: guqin-like plucks over a low drone
+PENTA = [0, 3, 5, 7, 10]  # minor pentatonic intervals
+
+
+def guqin(f, dur=3.5, slide=0.0, harmonic=False):
+    n = int(dur * SR); t = t_axis(n)
+    fr = f * (1 + slide * np.clip(t / 0.25, 0, 1))            # a small slide after the pluck
+    ph = 2 * np.pi * np.cumsum(fr) / SR
+    vib = 1 + 0.004 * np.sin(2 * np.pi * 5.2 * t) * np.clip(t / 0.4, 0, 1)
+    x = np.zeros(n)
+    hs = (1, 2, 3, 4, 5, 6, 7, 8) if not harmonic else (2, 4, 6)
+    for h in hs:
+        x += np.sin(ph * h * vib * (1 + 0.0008 * h * h)) * np.exp(-t / (2.4 / h ** 0.7)) / h ** (1.1 if not harmonic else 0.6)
+    pick = highpass(rng.standard_normal(n), 1500) * np.exp(-t / 0.006) * 0.25
+    return (x + pick) * np.clip(t / 0.003, 0, 1)
+
+
+def build_music_ink():
+    mus = np.zeros((N, 2))
+    r = np.random.default_rng(11)
+    for i, (t0, ch, lvl) in enumerate(PROG):
+        t1 = PROG[i + 1][0] if i + 1 < len(PROG) else DUR + 0.6
+        root = note_hz(CHORDS[ch][0])
+        # drone: low root and fifth, breathing
+        n = int((t1 - t0 + 2.5) * SR); tt = t_axis(n)
+        env = np.clip(tt / 1.8, 0, 1) * np.clip((t1 - t0 + 2.5 - tt) / 2.5, 0, 1)
+        dr = (np.sin(2 * np.pi * root / 2 * tt) + 0.35 * np.sin(2 * np.pi * root * 0.75 * tt)) * env * (1 + 0.15 * np.sin(2 * np.pi * 0.11 * tt))
+        place(mus, dr, t0, 0.06 * lvl)
+        # unmetred plucks from the pentatonic on this root
+        t = t0 + r.uniform(0.2, 0.8)
+        while t < t1 - 0.3:
+            step = PENTA[r.integers(0, 5)] + 12 * r.integers(1, 3)
+            f = root * 2 ** (step / 12)
+            harm = r.random() < 0.18
+            place(mus, guqin(f, 3.2, slide=r.choice([0, 0, 0.03, -0.02]), harmonic=harm), t, 0.11 * lvl, pan=r.uniform(-0.3, 0.3))
+            t += r.uniform(0.9, 2.4) * (0.8 if lvl > 0.8 else 1.0)
+    # breath of silence before the decisive stroke on the 38th parallel
+    s0, s1 = int(70.9 * SR), int(72.3 * SR)
+    fade = np.ones(N); fade[s0 - 4800:s0] = np.linspace(1, 0, 4800); fade[s0:s1] = 0; fade[s1:s1 + 2400] = np.linspace(0, 1, 2400)
+    wet = convolve_st(mus, reverb_ir(3.6, 1.1))
+    mus = (0.6 * mus + 0.7 * wet) * fade[:, None]
+    fade_in = np.clip(t_axis(N) / 2.0, 0, 1) ** 2
+    fade_out = np.clip((DUR + 0.4 - t_axis(N)) / 2.5, 0, 1)
+    return mus * (fade_in * fade_out)[:, None] * 2.2
+
+
+def gong(n_s=2.5):
+    n = int(n_s * SR); t = t_axis(n); x = np.zeros(n)
+    for f, d, a in ((210, 1.6, 1), (337, 1.1, 0.6), (523, 0.7, 0.4), (781, 0.4, 0.25)):
+        x += a * np.sin(2 * np.pi * f * t * (1 - 0.01 * np.exp(-t / 0.3))) * np.exp(-t / d)
+    return x / np.abs(x).max()
+
+
 def build_sfx():
     sfx = np.zeros((N, 2))
     for e in events:
@@ -200,7 +254,9 @@ def build_sfx():
         elif ty == "key": place(sfx, key(), t, 0.085, pan=rng.uniform(-0.15, 0.15))
         elif ty == "pen": place(sfx, pen(e["dur"], e.get("soft")), t, 0.06)
         elif ty == "slam": place(sfx, thud(0.9, 46, 140), t, 0.5)
-        elif ty == "stamp": place(sfx, thud(0.8, 52, 160, slap=0.7), t, 0.55)
+        elif ty == "stamp":
+            place(sfx, thud(0.8, 52, 160, slap=0.7), t, 0.55)
+            if INK: place(sfx, gong(), t + 0.02, 0.18)
     wet = convolve_st(sfx, reverb_ir(1.4, 0.35, seed=5))
     return sfx + 0.18 * wet
 
@@ -212,7 +268,7 @@ def write(path, x):
         w.setnchannels(2); w.setsampwidth(2); w.setframerate(SR); w.writeframes(pcm.tobytes())
 
 
-m = build_music(); s = build_sfx()
+m = build_music_ink() if INK else build_music(); s = build_sfx()
 print("music peak", float(np.abs(m).max()), "rms", float(np.sqrt((m ** 2).mean())))
 print("sfx peak", float(np.abs(s).max()))
 write(f"{OUT}/music.wav", m); write(f"{OUT}/sfx.wav", s)

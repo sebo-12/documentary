@@ -30,7 +30,7 @@ async function openPages(n, width) {
   for (let i = 0; i < n; i++) {
     const page = await browser.newPage();
     page.on("pageerror", (e) => console.error("pageerror", e.message));
-    await page.goto("file://" + path.join(here, "index.html"));
+    await page.goto("file://" + path.join(here, "index.html") + (process.env.STYLE === "ink" ? "?ink" : ""));
     await page.evaluate(([w, d]) => window.setup(w, d), [width, DUR]);
     pages.push(page);
   }

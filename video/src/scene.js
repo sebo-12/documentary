@@ -7,7 +7,15 @@ import beats from "../../beats.json";
 import words from "../word_times.json";
 
 export const W = 1920, H = 1080, FPS = 30;
-const BG = "#0A1A26", MAPBLUE = "#2F6F9A", COAST = "#6FA6CC", PAPER = "#EFE9DC", RED = "#E8322B";
+// style switch: "?ink" renders the Chinese Ink Wash look (Lemo-Opuscar library), otherwise the dark map
+export const INK = typeof location !== "undefined" && new URLSearchParams(location.search).has("ink");
+const BG = INK ? "#F2ECDE" : "#0A1A26", MAPBLUE = "#2F6F9A", COAST = "#6FA6CC";
+const PAPER = INK ? "#1E1C1A" : "#EFE9DC";           // text and line colour (ink on paper in INK mode)
+const RED = INK ? "#B02E22" : "#E8322B";              // vermilion: only seals in INK mode
+const MARK = INK ? "#26231F" : RED;                   // circles, underlines, arrows, connectors
+const SH = INK ? "rgba(242,236,222,0.95)" : "rgba(5,14,22,0.92)"; // halo behind text
+const DIMRGB = INK ? "242,236,222" : "8,20,30";      // what the map dims toward (paper mist / dark)
+const LF = (px) => INK ? `italic 500 ${Math.round(px * 1.32)}px 'Cormorant Garamond'` : `500 ${px}px 'IBM Plex Mono'`;
 const SERIF = "'Cormorant Lining', 'Cormorant Garamond'", MONO = "'IBM Plex Mono'", KR = "'Noto Serif KR'";
 
 // ---------- projection: fixed Mercator, the camera is a 2D transform on top ----------
@@ -209,7 +217,24 @@ const ARROWS = [
 
 // ---------- assets built once ----------
 let grain = [], dust = [], stampCanvas, glowC, worldC, tmpC;
-let IMAGES = {};
+let IMAGES = {}, paperTex;
+function makePaper() { // warm rice paper: cloud mottling, long fibres, pulp flecks
+  const c = new OffscreenCanvas(W, H), g = c.getContext("2d"), r = rng(21);
+  g.globalCompositeOperation = "multiply";
+  for (const [cw, a] of [[24, 0.10], [96, 0.06], [384, 0.04]]) {
+    const ch = Math.round(cw * H / W), n = new OffscreenCanvas(cw, ch), q = n.getContext("2d"), im = q.createImageData(cw, ch);
+    for (let i = 0; i < im.data.length; i += 4) { const v = 200 + r() * 55; im.data[i] = v; im.data[i + 1] = v - 6; im.data[i + 2] = v - 16; im.data[i + 3] = 255; }
+    q.putImageData(im, 0, 0); g.globalAlpha = a * 2; g.imageSmoothingQuality = "high"; g.drawImage(n, 0, 0, W, H);
+  }
+  g.globalAlpha = 1; g.lineCap = "round";
+  for (let i = 0; i < 900; i++) {
+    const x = r() * W, y = r() * H, a = r() * Math.PI, l = 20 + r() * 90;
+    g.strokeStyle = `rgba(120,100,70,${0.04 + r() * 0.06})`; g.lineWidth = 0.6 + r();
+    g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + Math.cos(a) * l / 2 + (r() - 0.5) * 12, y + Math.sin(a) * l / 2 + (r() - 0.5) * 12, x + Math.cos(a) * l, y + Math.sin(a) * l); g.stroke();
+  }
+  for (let i = 0; i < 500; i++) { g.fillStyle = `rgba(90,75,50,${0.08 + r() * 0.12})`; g.fillRect(r() * W, r() * H, 1 + r() * 1.8, 1 + r() * 1.8); }
+  return c;
+}
 export const IMAGE_NAMES = ["dolmen", "stele", "jikji", "gyeongbokgung", "hunminjeongeum", "annexation_treaty", "declaration", "armistice", "expressway"];
 export function setImages(m) { IMAGES = m; }
 const PAPERC = "#F1ECE2";
@@ -219,6 +244,7 @@ function prerenderObject(o) {
   const Q = 1.5; // supersample so pull-ins stay sharp
   const dw = Math.round(iw * k), dh = Math.round(ih * k);
   const r = rng(o.img.length * 7 + 3);
+  if (o.kind === "polaroid" && INK) o.kind = "print";
   if (o.kind === "polaroid") {
     const bs = 24, bb = 92, pad = 70;
     const cw = dw + bs * 2, ch = dh + bs + bb;
@@ -241,7 +267,9 @@ function prerenderObject(o) {
     for (let x = cw; x > 0; x -= step) path.lineTo(x, ch + J());
     for (let y = ch; y > 0; y -= step) path.lineTo(J(), y);
     path.closePath();
-    g.save(); g.clip(path); g.fillStyle = PAPERC; g.fillRect(-5, -5, cw + 10, ch + 10); g.drawImage(im, 0, 0, cw, ch); g.restore();
+    g.save(); g.clip(path); g.fillStyle = PAPERC; g.fillRect(-5, -5, cw + 10, ch + 10);
+    if (o.kind === "print") g.filter = "grayscale(1) sepia(0.25) contrast(1.15) brightness(1.05)";
+    g.drawImage(im, 0, 0, cw, ch); g.filter = "none"; g.restore();
     o.canvas = c; o.cw = cw; o.ch = ch; o.pad = pad; o.Q = Q;
   }
 }
@@ -278,6 +306,7 @@ export function init() {
   }
   for (let i = 0; i < 46; i++) dust.push({ x: r() * W, y: r() * H, vx: (r() - 0.5) * 6, vy: -2 - r() * 5, s: 0.8 + r() * 2.2, a: 0.05 + r() * 0.16, ph: r() * 6.28, par: 0.08 + r() * 0.2 });
   stampCanvas = makeStamp();
+  if (INK) paperTex = makePaper();
   OBJECTS.forEach((o, i) => { prerenderObject(o); anchorObject(o); anchorFinal(o, i); });
 }
 
@@ -289,10 +318,16 @@ function makeStamp() {
   const cw = Math.ceil(tw + pad * 2 + 40), ch = Math.ceil(fs + pad * 2 + 40);
   const c = new OffscreenCanvas(cw, ch), g = c.getContext("2d");
   g.strokeStyle = RED; g.fillStyle = RED;
-  g.lineWidth = 14; g.strokeRect(20, 20, cw - 40, ch - 40);
-  g.lineWidth = 5; g.strokeRect(44, 44, cw - 88, ch - 88);
   g.font = `600 ${fs}px ${MONO}`; g.letterSpacing = "18px"; g.textBaseline = "middle"; g.textAlign = "center";
-  g.fillText("ANNEXED", cw / 2 + 9, ch / 2 + 6);
+  if (INK) { // a 白文 seal: the word is cut out of the vermilion
+    g.fillRect(20, 20, cw - 40, ch - 40);
+    g.globalCompositeOperation = "destination-out"; g.fillText("ANNEXED", cw / 2 + 9, ch / 2 + 6);
+    g.lineWidth = 5; g.strokeRect(46, 46, cw - 92, ch - 92); g.globalCompositeOperation = "source-over";
+  } else {
+    g.lineWidth = 14; g.strokeRect(20, 20, cw - 40, ch - 40);
+    g.lineWidth = 5; g.strokeRect(44, 44, cw - 88, ch - 88);
+    g.fillText("ANNEXED", cw / 2 + 9, ch / 2 + 6);
+  }
   // ink distress: knock out specks and streaks
   const r = rng(11); g.globalCompositeOperation = "destination-out";
   for (let i = 0; i < 2600; i++) { g.globalAlpha = 0.25 + r() * 0.75; const s = r() * 3.2; g.fillRect(r() * cw, r() * ch, s, s); }
@@ -334,10 +369,11 @@ function drawObjects(g, t, cam, dim) {
     g.save();
     g.translate(sx, sy - 70 * (1 - p) * sc); g.rotate(rotCam + (o.rot + 5 * (1 - p)) * Math.PI / 180); g.scale(sc, sc);
     g.globalAlpha = a;
-    g.shadowColor = "rgba(0,4,8,0.6)"; g.shadowBlur = (16 + 34 * (1 - p)) * sc; g.shadowOffsetY = (10 + 34 * (1 - p)) * sc;
+    g.shadowColor = INK ? "rgba(60,45,25,0.28)" : "rgba(0,4,8,0.6)"; g.shadowBlur = (16 + 34 * (1 - p)) * sc; g.shadowOffsetY = (INK ? 4 + 14 * (1 - p) : 10 + 34 * (1 - p)) * sc;
+    if (INK && o.kind === "print") g.globalCompositeOperation = "multiply";
     const x0 = -o.cw / 2 - o.pad, y0 = -o.ch / 2 - o.pad;
     g.drawImage(o.canvas, x0, y0, o.canvas.width / o.Q, o.canvas.height / o.Q);
-    g.shadowColor = "transparent";
+    g.shadowColor = "transparent"; g.globalCompositeOperation = "source-over";
     if (o.caption && t >= o.capT) { // caption written on the polaroid strip, letter by letter
       g.font = `600 64px ${SERIF}`; g.letterSpacing = "5px"; g.textAlign = "left"; g.textBaseline = "middle"; g.fillStyle = "#1C2730";
       const chars = [...o.caption], ws = chars.map((c) => g.measureText(c).width), tot = ws.reduce((x, y) => x + y, 0);
@@ -348,7 +384,7 @@ function drawObjects(g, t, cam, dim) {
     // darken documents under a typed overlay
     let shade = 0;
     if (o.overlay) shade = Math.max(shade, 0.6 * clamp((t - o.overlay) / 0.3) * objLive(o, t));
-    if (shade > 0.001) { g.globalAlpha = shade * 0.62; g.fillStyle = "rgb(8,20,30)"; g.fillRect(-o.cw / 2 - 2, -o.ch / 2 - 2, o.cw + 4, o.ch + 4); }
+    if (shade > 0.001) { g.globalAlpha = shade * 0.62; g.fillStyle = `rgb(${DIMRGB})`; g.fillRect(-o.cw / 2 - 2, -o.ch / 2 - 2, o.cw + 4, o.ch + 4); }
     g.restore();
     if (o.cap && t > o.capAt) drawCaption(g, o, t, a, sx, sy, zNow / o.zRef);
   }
@@ -366,54 +402,64 @@ function drawFinal(g, t, cam) {
     const [sx, sy] = toScreen(cam, t, o.fwx, o.fwy), [px, py] = toScreen(cam, t, ...o.place);
     // red connector to the place, drawn on
     const lp = easeOut((t - o.ft - 0.15) / 0.5);
-    if (lp > 0) { g.save(); g.strokeStyle = RED; g.globalAlpha = 0.75 * (1 - 0.6 * heroDim) * out; g.lineWidth = 2; g.beginPath(); g.moveTo(sx, sy); g.lineTo(lerp(sx, px, lp), lerp(sy, py, lp)); g.stroke(); g.restore(); }
+    if (lp > 0) { g.save(); g.strokeStyle = MARK; g.globalAlpha = 0.75 * (1 - 0.6 * heroDim) * out; g.lineWidth = 2; g.beginPath(); g.moveTo(sx, sy); g.lineTo(lerp(sx, px, lp), lerp(sy, py, lp)); g.stroke(); g.restore(); }
     const sc = (zNow / o.fz) * o.fk * (1 + 0.15 * (1 - p));
     g.save(); g.translate(sx, sy - 20 * (1 - p)); g.rotate(o.rot * Math.PI / 180); g.scale(sc, sc);
-    g.globalAlpha = a; g.shadowColor = "rgba(0,4,8,0.6)"; g.shadowBlur = 14 / sc * 0.5; g.shadowOffsetY = 6 / sc * 0.5;
+    g.globalAlpha = a; g.shadowColor = INK ? "rgba(60,45,25,0.25)" : "rgba(0,4,8,0.6)"; g.shadowBlur = 14 / sc * 0.5; g.shadowOffsetY = 6 / sc * 0.5;
     g.drawImage(o.canvas, -o.cw / 2 - o.pad, -o.ch / 2 - o.pad, o.canvas.width / o.Q, o.canvas.height / o.Q);
     g.shadowColor = "transparent";
-    if (heroDim > 0) { g.globalAlpha = 0.55 * heroDim; g.fillStyle = "rgb(8,20,30)"; g.fillRect(-o.cw / 2 - 2, -o.ch / 2 - 2, o.cw + 4, o.ch + 4); }
+    if (heroDim > 0) { g.globalAlpha = 0.55 * heroDim; g.fillStyle = `rgb(${DIMRGB})`; g.fillRect(-o.cw / 2 - 2, -o.ch / 2 - 2, o.cw + 4, o.ch + 4); }
     g.restore();
   }
 }
 
 function drawCaption(g, o, t, a, sx, sy, sc) {
   const [label, lines, src] = o.cap, ca = easeOut((t - o.capAt) / 0.45) * a;
-  g.save(); g.font = `500 30px ${MONO}`; g.letterSpacing = "2px";
+  g.save(); g.font = LF(30); g.letterSpacing = "2px";
   let wMax = Math.max(...lines.map((l) => g.measureText(l).width), 180);
-  g.font = `500 22px ${MONO}`; g.letterSpacing = "3px"; wMax = Math.max(wMax, g.measureText(label).width) + 44;
+  g.font = LF(22); g.letterSpacing = "3px"; wMax = Math.max(wMax, g.measureText(label).width) + 44;
   const hPlate = 52 + lines.length * 40 + (src ? 30 : 0);
   // to the right of the object, or under it when there is no room
   let px = sx + (o.cw / 2) * sc + 46, py = sy - hPlate / 2, ax = sx + (o.cw / 2) * sc, ay = sy, horiz = true;
   if (px + wMax > W - 80) { px = sx - (o.cw / 2) * sc; py = sy - (o.ch / 2) * sc - 34 - hPlate; ax = px + 30; ay = py + hPlate + 34; horiz = false; }
   // anchor dot and leader, then the plate wipes in from the leader side
-  g.globalAlpha = ca; g.fillStyle = RED; g.strokeStyle = RED; g.lineWidth = 2;
+  g.globalAlpha = ca; g.fillStyle = MARK; g.strokeStyle = MARK; g.lineWidth = 2;
   g.beginPath(); g.arc(ax, ay, 5, 0, 7); g.fill();
   g.beginPath(); g.moveTo(ax, ay); horiz ? g.lineTo(px, ay) : g.lineTo(ax, py); g.stroke();
   g.beginPath(); g.rect(px, py, wMax * ca, hPlate); g.clip();
-  g.fillStyle = "rgba(14,15,17,0.78)"; g.fillRect(px, py, wMax, hPlate); g.fillStyle = RED; g.fillRect(px, py, 3, hPlate);
+  if (INK) { g.fillStyle = RED; g.fillRect(px + 2, py + 20, 9, 9); } else { g.fillStyle = "rgba(14,15,17,0.78)"; g.fillRect(px, py, wMax, hPlate); g.fillStyle = RED; g.fillRect(px, py, 3, hPlate); }
   g.fillStyle = PAPER; g.textBaseline = "top"; g.textAlign = "left";
-  g.globalAlpha = ca * 0.7; g.font = `500 22px ${MONO}`; g.letterSpacing = "3px"; g.fillText(label, px + 22, py + 16);
-  g.globalAlpha = ca; g.font = `500 30px ${MONO}`; g.letterSpacing = "2px"; lines.forEach((l, i) => g.fillText(l, px + 22, py + 48 + i * 40));
-  if (src) { g.globalAlpha = ca * 0.55; g.font = `500 20px ${MONO}`; g.fillText(src, px + 22, py + 52 + lines.length * 40); }
+  g.globalAlpha = ca * 0.7; g.font = LF(22); g.letterSpacing = "3px"; g.fillText(label, px + 22, py + 16);
+  g.globalAlpha = ca; g.font = LF(30); g.letterSpacing = "2px"; lines.forEach((l, i) => g.fillText(l, px + 22, py + 48 + i * 40));
+  if (src) { g.globalAlpha = ca * 0.55; g.font = LF(20); g.fillText(src, px + 22, py + 52 + lines.length * 40); }
   g.restore();
 }
 
 function drawWorld(g, t) {
   const cam = camera(t);
   g.fillStyle = BG; g.fillRect(0, 0, W, H);
+  if (INK) g.drawImage(paperTex, 0, 0);
   g.save();
   const z = worldTransform(g, cam, t);
   // graticule
-  g.strokeStyle = "rgba(140,190,220,0.055)"; g.lineWidth = 1.2 / z; g.stroke(GRAT);
+  if (!INK) { g.strokeStyle = "rgba(140,190,220,0.055)"; g.lineWidth = 1.2 / z; g.stroke(GRAT); }
   // land
-  g.fillStyle = MAPBLUE; g.globalAlpha = 0.5; g.fill(LAND); g.globalAlpha = 1;
-  g.strokeStyle = COAST; g.globalAlpha = 0.55; g.lineWidth = 1.4 / z; g.stroke(LAND); g.globalAlpha = 1;
+  if (INK) { // pale wash for the land, a loaded wet edge for the coast; water stays blank paper
+    g.globalCompositeOperation = "multiply";
+    g.fillStyle = "rgba(60,55,48,0.13)"; g.fill(LAND);
+    g.strokeStyle = "rgba(40,36,32,0.10)"; g.lineWidth = 9 / z; g.stroke(LAND);
+    g.strokeStyle = "rgba(35,32,28,0.32)"; g.lineWidth = 3 / z; g.stroke(LAND);
+    g.strokeStyle = "rgba(25,23,20,0.72)"; g.lineWidth = 1.1 / z; g.stroke(LAND);
+    g.globalCompositeOperation = "source-over";
+  } else {
+    g.fillStyle = MAPBLUE; g.globalAlpha = 0.5; g.fill(LAND); g.globalAlpha = 1;
+    g.strokeStyle = COAST; g.globalAlpha = 0.55; g.lineWidth = 1.4 / z; g.stroke(LAND); g.globalAlpha = 1;
+  }
 
   // three kingdoms
   const terrA = clamp((t - TERR_IN) / 0.6) * (1 - 0.75 * smooth((t - (b(2).end + 0.3)) / 1.2)) * (1 - smooth((t - TERR_OUT0) / (TERR_OUT1 - TERR_OUT0)));
   if (terrA > 0.001) {
-    const tints = { GOGURYEO: "rgba(150,200,230,0.26)", BAEKJE: "rgba(120,190,230,0.20)", SILLA: "rgba(200,225,240,0.32)" };
+    const tints = INK ? { GOGURYEO: "rgba(30,28,25,0.16)", BAEKJE: "rgba(30,28,25,0.08)", SILLA: "rgba(30,28,25,0.24)" } : { GOGURYEO: "rgba(150,200,230,0.26)", BAEKJE: "rgba(120,190,230,0.20)", SILLA: "rgba(200,225,240,0.32)" };
     for (const [k, path] of Object.entries(REGIONS)) {
       const nameT = TERR.find((x) => x.name === k).t0;
       const a = terrA * clamp((t - nameT + 0.25) / 0.4);
@@ -440,7 +486,11 @@ function drawWorld(g, t) {
     const [x0, y0] = P(LINE38.lon0, 38), [x1] = P(LINE38.lon1, 38);
     g.strokeStyle = RED; g.lineWidth = 4 / z; g.lineCap = "round";
     g.globalAlpha = 1 - 0.72 * smooth((t - (b(13).start + 0.5)) / 2);
-    g.beginPath(); g.moveTo(x0, y0); g.lineTo(lerp(x0, x1, easeOut(l38)), y0); g.stroke(); g.globalAlpha = 1;
+    if (INK) { const pts = []; for (let k = 0; k <= 60; k++) pts.push([lerp(x0, x1, k / 60), y0 + (Math.sin(k * 0.7) * 0.6) / z]);
+      g.save(); g.setTransform(1, 0, 0, 1, 0, 0); const sp = partialPts(pts.map(([x, y]) => toScreen(cam, t, x, y)), easeOut(l38));
+      markLine(g, sp, 9, g.globalAlpha, 0.55, 38); g.restore(); }
+    else { g.beginPath(); g.moveTo(x0, y0); g.lineTo(lerp(x0, x1, easeOut(l38)), y0); g.stroke(); }
+    g.globalAlpha = 1;
   }
   g.restore();
 
@@ -452,13 +502,13 @@ function drawWorld(g, t) {
     const pulse = clamp((t - p.on) / 0.9);
     g.save();
     if (pulse < 1) { g.strokeStyle = RED; g.globalAlpha = (1 - pulse) * 0.8; g.lineWidth = 2.5; g.beginPath(); g.arc(sx, sy, 8 + 34 * easeOut(pulse), 0, 7); g.stroke(); }
-    g.globalAlpha = a; g.fillStyle = RED;
+    g.globalAlpha = a; g.fillStyle = MARK;
     g.beginPath(); g.arc(sx, sy, 7.5 * (0.6 + 0.4 * easeOut(a)), 0, 7); g.fill();
     g.strokeStyle = "rgba(10,26,38,0.9)"; g.lineWidth = 2; g.stroke();
     const la = a * (1 - smooth((t - p.labelOff) / 0.5));
     if (la > 0) {
-      g.globalAlpha = la; g.font = `500 42px ${MONO}`; g.letterSpacing = "5px"; g.textBaseline = "middle";
-      g.fillStyle = PAPER; g.shadowColor = "rgba(5,14,22,0.9)"; g.shadowBlur = 14;
+      g.globalAlpha = la; g.font = LF(42); g.letterSpacing = "5px"; g.textBaseline = "middle";
+      g.fillStyle = PAPER; g.shadowColor = SH; g.shadowBlur = 14;
       g.fillText(p.label, sx + 26 + 10 * (1 - easeOut(la)), sy + 1);
     }
     g.restore();
@@ -468,8 +518,8 @@ function drawWorld(g, t) {
   if (terrA > 0.001 && nameA > 0) for (const tr of TERR) {
     const a = nameA * clamp((t - tr.t0) / 0.3); if (a <= 0) continue;
     const [sx, sy] = toScreen(cam, t, ...P(tr.lon, tr.lat));
-    g.save(); g.globalAlpha = a; g.font = `500 44px ${MONO}`; g.letterSpacing = "6px"; g.textAlign = "center"; g.textBaseline = "middle";
-    g.fillStyle = PAPER; g.shadowColor = "rgba(5,14,22,0.95)"; g.shadowBlur = 16;
+    g.save(); g.globalAlpha = a; g.font = LF(44); g.letterSpacing = "6px"; g.textAlign = "center"; g.textBaseline = "middle";
+    g.fillStyle = PAPER; g.shadowColor = SH; g.shadowBlur = 16;
     g.fillText(tr.name, sx, sy + 8 * (1 - easeOut(a))); g.restore();
   }
   // arrows: drawn on over 0.7 s, curved, with a head
@@ -479,8 +529,8 @@ function drawWorld(g, t) {
     const A = toScreen(cam, t, ...P(...ar.from)), B = toScreen(cam, t, ...P(...ar.to));
     const mx = (A[0] + B[0]) / 2 - (B[1] - A[1]) * ar.bend, my = (A[1] + B[1]) / 2 + (B[0] - A[0]) * ar.bend;
     const pts = []; for (let k = 0; k <= 40; k++) { const u = k / 40, v = 1 - u; pts.push([v * v * A[0] + 2 * v * u * mx + u * u * B[0], v * v * A[1] + 2 * v * u * my + u * u * B[1]]); }
-    g.save(); g.globalAlpha = fa; g.strokeStyle = RED; g.fillStyle = RED; g.lineWidth = 5; g.lineCap = "round"; g.lineJoin = "round";
-    strokePartial(g, pts, p);
+    g.save(); g.globalAlpha = fa; g.strokeStyle = MARK; g.fillStyle = MARK; g.lineWidth = 5; g.lineCap = "round"; g.lineJoin = "round";
+    if (INK) markLine(g, partialPts(pts, p), 6, fa, 0.3, 7); else strokePartial(g, pts, p);
     const k = Math.max(1, Math.round(40 * p)), [hx, hy] = pts[k], [qx, qy] = pts[k - 1], ang = Math.atan2(hy - qy, hx - qx);
     if (p > 0.05) { g.translate(hx, hy); g.rotate(ang); g.beginPath(); g.moveTo(10, 0); g.lineTo(-14, -11); g.lineTo(-14, 11); g.closePath(); g.fill(); }
     g.restore();
@@ -490,16 +540,55 @@ function drawWorld(g, t) {
     const a = clamp((t - LINE38.t0 - 0.5) / 0.3) * (1 - smooth((t - (b(12).end + 0.2)) / 0.5));
     if (a > 0) {
       const [sx, sy] = toScreen(cam, t, ...P(LINE38.lon1, 38));
-      g.save(); g.globalAlpha = a; g.font = `500 44px ${MONO}`; g.letterSpacing = "4px"; g.textBaseline = "middle";
-      g.fillStyle = PAPER; g.shadowColor = "rgba(5,14,22,0.95)"; g.shadowBlur = 16; g.fillText("38°N", sx + 24, sy); g.restore();
+      g.save(); g.globalAlpha = a; g.font = LF(44); g.letterSpacing = "4px"; g.textBaseline = "middle";
+      g.fillStyle = PAPER; g.shadowColor = SH; g.shadowBlur = 16; g.fillText("38°N", sx + 24, sy); g.restore();
     }
   }
   const dim = dimAt(t);
-  if (dim > 0) { g.fillStyle = `rgba(8,20,30,${0.5 * dim})`; g.fillRect(0, 0, W, H); }
+  if (dim > 0) { g.fillStyle = `rgba(${DIMRGB},${(INK ? 0.62 : 0.5) * dim})`; g.fillRect(0, 0, W, H); }
   drawObjects(g, t, cam, dim);
   drawFinal(g, t, cam);
 }
 
+function hash(n) { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
+function vnoise(x, seed) { const i = Math.floor(x), f = x - i, u = f * f * (3 - 2 * f); return lerp(hash(i + seed * 17.3), hash(i + 1 + seed * 17.3), u); }
+// a mark along pts: a clean line in the dark style, a loaded ink brush (bristles, dry breaks, tapered ends) in INK
+function markLine(g, pts, width, alpha = 1, dry = 0.25, seed = 1) {
+  if (pts.length < 2) return;
+  if (!INK) { g.save(); g.globalAlpha *= alpha; g.strokeStyle = MARK; g.lineWidth = width; g.lineCap = "round"; g.lineJoin = "round";
+    g.beginPath(); g.moveTo(...pts[0]); for (const q of pts.slice(1)) g.lineTo(...q); g.stroke(); g.restore(); return; }
+  const L = []; let tot = 0; L.push(0);
+  for (let i = 1; i < pts.length; i++) { tot += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); L.push(tot); }
+  const nb = 14, w = width * 1.8;
+  g.save(); g.lineCap = "round"; g.strokeStyle = MARK;
+  // wet body under the bristles
+  g.globalAlpha = alpha * 0.22; g.lineWidth = w * 0.9; g.beginPath(); g.moveTo(...pts[0]); for (const q of pts) g.lineTo(...q); g.stroke();
+  for (let k = 0; k < nb; k++) {
+    const off = (k / (nb - 1) - 0.5) * w * 0.85, side = k / (nb - 1);
+    g.lineWidth = Math.max(1, w / nb * 1.9);
+    let open = false;
+    for (let i = 1; i < pts.length; i++) {
+      const u = L[i] / (tot || 1), press = Math.sin(Math.PI * Math.min(1, u * 1.15 + 0.08)); // tapered entry and exit
+      const load = 1 - u * (0.6 + 0.4 * dry);                 // ink runs out along the stroke
+      const gap = vnoise(L[i] / 900 * 14 + k * 3.1, seed + k) < dry * (0.4 + u);  // flying white
+      const [x0, y0] = pts[i - 1], [x1, y1] = pts[i], dx = x1 - x0, dy = y1 - y0, dl = Math.hypot(dx, dy) || 1;
+      const nx = -dy / dl, ny = dx / dl, o = off * (0.5 + 0.5 * press);
+      if (gap || Math.abs(off) > w * 0.45 * press) { if (open) { g.stroke(); open = false; } continue; }
+      g.globalAlpha = alpha * Math.max(0.15, load) * (0.55 + 0.45 * side);  // loaded: darker on one side
+      if (!open) { g.beginPath(); g.moveTo(x0 + nx * o, y0 + ny * o); open = true; }
+      g.lineTo(x1 + nx * o, y1 + ny * o);
+    }
+    if (open) g.stroke();
+  }
+  g.restore();
+}
+function partialPts(pts, s) { // the first fraction s of a polyline, by length
+  if (s >= 1) return pts; if (s <= 0) return [];
+  let tot = 0; const seg = []; for (let i = 1; i < pts.length; i++) { const d = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); seg.push(d); tot += d; }
+  let left = tot * s; const out = [pts[0]];
+  for (let i = 1; i < pts.length && left > 0; i++) { const u = Math.min(1, left / seg[i - 1]); out.push([lerp(pts[i - 1][0], pts[i][0], u), lerp(pts[i - 1][1], pts[i][1], u)]); left -= seg[i - 1]; }
+  return out;
+}
 function strokePartial(g, pts, s) {
   if (s <= 0) return;
   let total = 0; const seg = [];
@@ -526,7 +615,7 @@ function drawHeroes(g, t) {
     if (a <= 0 || t < h.t0) continue;
     const cy = h.hy * H, exitLift = -14 * smooth((t - (h.t1 - 0.45)) / 0.45);
     g.save(); g.translate(0, exitLift);
-    g.fillStyle = PAPER; g.textBaseline = "alphabetic"; g.shadowColor = "rgba(4,12,20,0.85)"; g.shadowBlur = 30;
+    g.fillStyle = PAPER; g.textBaseline = "alphabetic"; g.shadowColor = SH; g.shadowBlur = 30;
     if (h.kind === "word" || h.kind === "type") drawWord(g, h, t, a, cy);
     else if (h.kind === "circle") drawCircleNum(g, h, t, a, cy);
     else if (h.kind === "hangeul") drawHangeul(g, h, t, a, cy);
@@ -566,7 +655,7 @@ function drawWord(g, h, t, a, cy) {
   }
   // red underline draws on after the word lands
   const u = easeOut((t - h.t0 - Math.min(0.6, chars.length * step) - 0.05) / 0.5);
-  if (u > 0) { g.shadowBlur = 0; g.globalAlpha = a; g.fillStyle = RED; const uw = Math.min(260, total * 0.3); g.fillRect(W / 2 - uw / 2, base + fs * 0.2, uw * u, Math.max(4, fs * 0.025)); }
+  if (u > 0) { g.shadowBlur = 0; g.globalAlpha = a; const uw = Math.min(260, total * 0.3), uy = base + fs * 0.2; markLine(g, [[W / 2 - uw / 2, uy], [W / 2 - uw / 2 + uw * u, uy]], Math.max(4, fs * 0.025), 1, 0.3, 3); }
 }
 
 function drawCircleNum(g, h, t, a, cy) {
@@ -576,16 +665,15 @@ function drawCircleNum(g, h, t, a, cy) {
   g.globalAlpha = a; g.fillText(h.text, W / 2 - w / 2, base + 14 * (1 - easeOut((t - h.t0) / 0.35)));
   const p = easeOut((t - h.circle) / 0.5);
   if (p > 0) {
-    g.shadowBlur = 0; g.strokeStyle = RED; g.lineWidth = 7; g.lineCap = "round"; g.globalAlpha = a;
-    const rx = w / 2 + 95, ry = fs * 0.5, a0 = -Math.PI * 0.62, sweep = Math.PI * 2.1 * p;
+    g.shadowBlur = 0; g.globalAlpha = a;
+    const rx = w / 2 + 95, ry = fs * 0.5, a0 = -Math.PI * 0.62, sweep = Math.PI * (INK ? 1.92 : 2.1) * p;
     const ccy = base - fs * 0.34; // centre of the lining figures
-    g.beginPath();
+    const pts = [];
     for (let k = 0; k <= 80; k++) {
       const th = a0 + sweep * (k / 80), wob = 1 + 0.025 * Math.sin(th * 3 + 1) + 0.04 * (k / 80);
-      const x = W / 2 + Math.cos(th) * rx * wob, y = ccy + Math.sin(th) * ry * wob;
-      k ? g.lineTo(x, y) : g.moveTo(x, y);
+      pts.push([W / 2 + Math.cos(th) * rx * wob, ccy + Math.sin(th) * ry * wob]);
     }
-    g.stroke();
+    markLine(g, pts, INK ? 15 : 7, 1, 0.45, 9); // an ensō brush circle in INK mode
   }
 }
 
@@ -596,26 +684,34 @@ function drawHangeul(g, h, t, a, cy) {
   const full = g.measureText("한글").width;
   g.globalAlpha = a; g.fillText(steps[k], W / 2 - full / 2, cy + fs * 0.36);
   const u = easeOut((t - h.t0 - 0.6) / 0.5);
-  if (u > 0) { g.shadowBlur = 0; g.fillStyle = RED; g.fillRect(W / 2 - 130, cy + fs * 0.36 + 46, 260 * u, 7); }
+  if (u > 0) { g.shadowBlur = 0; markLine(g, [[W / 2 - 130, cy + fs * 0.36 + 50], [W / 2 - 130 + 260 * u, cy + fs * 0.36 + 50]], 7, 1, 0.3, 4); }
 }
 
 function drawCounter(g, h, t, a, cy) {
   const v = Math.round(700000 * easeOut((t - h.t0) / 1.0));
   const txt = v.toLocaleString("en-US");
-  g.font = `500 230px ${MONO}`; g.letterSpacing = "6px"; g.textAlign = "center"; g.textBaseline = "alphabetic";
+  g.font = LF(230); g.letterSpacing = "6px"; g.textAlign = "center"; g.textBaseline = "alphabetic";
   g.globalAlpha = a; g.fillText(txt, W / 2, cy + 40);
   const sa = clamp((t - h.subT) / 0.3);
-  if (sa > 0) { g.font = `500 56px ${MONO}`; g.letterSpacing = "18px"; g.globalAlpha = a * sa; g.fillText(h.sub, W / 2 + 9, cy + 140); }
+  if (sa > 0) { g.font = LF(56); g.letterSpacing = "18px"; g.globalAlpha = a * sa; g.fillText(h.sub, W / 2 + 9, cy + 140); }
   g.textAlign = "left";
 }
 function drawEndCard(g, h, t, a, cy) {
   g.textAlign = "center"; g.textBaseline = "alphabetic";
   const ta = clamp((t - h.t0) / 0.6);
   g.globalAlpha = a * ta; g.font = `600 230px ${SERIF}`; g.letterSpacing = "40px"; g.fillText("KOREA", W / 2 + 20, cy + 60 - 12 * (1 - easeOut(ta)));
-  g.shadowBlur = 0; g.fillStyle = RED; const u = easeOut((t - h.t0 - 0.5) / 0.6); g.fillRect(W / 2 - 150, cy + 110, 300 * u, 6);
+  g.shadowBlur = 0; const u = easeOut((t - h.t0 - 0.5) / 0.6); if (u > 0) markLine(g, [[W / 2 - 150, cy + 113], [W / 2 - 150 + 300 * u, cy + 113]], 6, 1, 0.3, 5);
+  if (INK) { // vermilion seal 한국 beside the title
+    const sa = clamp((t - h.t0 - 0.7) / 0.15), ss = 112, sxx = W / 2 + 470, syy = cy - 110;
+    if (sa > 0) { g.save(); g.shadowBlur = 0; g.globalAlpha = a * sa; g.translate(sxx, syy); g.rotate(0.03); g.scale(1 + 0.25 * (1 - sa), 1 + 0.25 * (1 - sa));
+      const sc2 = new OffscreenCanvas(ss, ss), q = sc2.getContext("2d"); q.fillStyle = RED; q.fillRect(4, 4, ss - 8, ss - 8);
+      q.globalCompositeOperation = "destination-out"; q.font = `700 44px ${KR}`; q.textAlign = "center"; q.textBaseline = "middle"; q.fillText("한", ss / 2, ss * 0.3); q.fillText("국", ss / 2, ss * 0.72);
+      const r2 = rng(5); for (let i = 0; i < 160; i++) q.fillRect(r2() * ss, r2() * ss, 1.6, 1.6);
+      g.drawImage(sc2, -ss / 2, -ss / 2); g.restore(); }
+  }
   g.fillStyle = PAPER; g.shadowBlur = 20;
   const ca = clamp((t - h.t0 - 1.0) / 0.6); g.globalAlpha = a * ca * 0.85;
-  g.font = `500 30px ${MONO}`; g.letterSpacing = "3px";
+  g.font = LF(30); g.letterSpacing = "3px";
   ["IMAGES: WIKIMEDIA COMMONS", "TAEWANGKOREA, YUMETO, TRAINHOLIC (CC BY-SA 4.0)", "BRADY BELLINI (CC0), PUBLIC DOMAIN SCANS",
    "MAP: NATURAL EARTH. MUSIC AND SOUND MADE IN CODE"].forEach((l, i) => g.fillText(l, W / 2, cy + 230 + i * 46));
   g.textAlign = "left";
@@ -638,7 +734,7 @@ function drawShips(g, h, t, a, cy) {
   if (b > 0) { g.globalAlpha = a * b * 0.5; g.fillText("133", x133, base + 14 * (1 - easeOut(b))); }
   // short red rule under 13
   const u = easeOut((t - h.t0 - 0.25) / 0.45);
-  if (u > 0) { g.shadowBlur = 0; g.globalAlpha = a; g.fillStyle = RED; g.fillRect(x13 + w13 / 2 - 90, base + 40, 180 * u, 7); }
+  if (u > 0) { g.shadowBlur = 0; g.globalAlpha = a; markLine(g, [[x13 + w13 / 2 - 90, base + 43], [x13 + w13 / 2 - 90 + 180 * u, base + 43]], 7, 1, 0.3, 6); }
 }
 
 function drawStamp(g, h, t, a, cy) {
@@ -677,34 +773,36 @@ export function drawFrame(ctx, t, scale = 1) {
   ctx.drawImage(worldC, 0, 0);
 
   // dust (slight parallax with the camera)
-  ctx.save(); ctx.fillStyle = PAPER;
+  if (!INK) { ctx.save(); ctx.fillStyle = PAPER;
   for (const d of dust) {
     let x = (d.x + d.vx * t) % W; if (x < 0) x += W;
     let y = (d.y + d.vy * t) % H; if (y < 0) y += H;
     ctx.globalAlpha = d.a * (0.6 + 0.4 * Math.sin(t * 0.7 + d.ph));
     ctx.beginPath(); ctx.arc(x, y, d.s, 0, 7); ctx.fill();
   }
-  ctx.restore();
+  ctx.restore(); }
 
 
   drawHeroes(ctx, t);
 
-  // glow
+  // glow (dark style only)
+  if (!INK) {
   const gg = glowC.getContext("2d");
   gg.setTransform(1, 0, 0, 1, 0, 0); gg.filter = "blur(5px)"; gg.clearRect(0, 0, W / 4, H / 4);
   gg.drawImage(ctx.canvas, 0, 0, W / 4, H / 4); gg.filter = "none";
   ctx.save(); ctx.globalCompositeOperation = "screen"; ctx.globalAlpha = 0.28; ctx.drawImage(glowC, 0, 0, W, H); ctx.restore();
+  }
 
   // vignette
   const vg = ctx.createRadialGradient(W / 2, H / 2, H * 0.45, W / 2, H / 2, W * 0.72);
-  vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(1, "rgba(0,4,8,0.62)");
+  vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(1, INK ? "rgba(120,95,60,0.22)" : "rgba(0,4,8,0.62)");
   ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
 
   drawProgress(ctx, t);
 
   // grain
   const fi = Math.floor(t * FPS);
-  ctx.save(); ctx.globalCompositeOperation = "overlay"; ctx.globalAlpha = 0.085;
+  ctx.save(); ctx.globalCompositeOperation = INK ? "multiply" : "overlay"; ctx.globalAlpha = INK ? 0.05 : 0.085;
   const gt = grain[fi % grain.length], ox = (fi * 97) % 256, oy = (fi * 57) % 256;
   ctx.translate(-ox, -oy); ctx.fillStyle = ctx.createPattern(gt, "repeat"); ctx.fillRect(0, 0, W + 256, H + 256);
   ctx.restore();

@@ -7,7 +7,7 @@ async function loadImage(name) {
   return await createImageBitmap(im);
 }
 window.setup = async (w, duration) => {
-  const faces = ["600 100px 'Cormorant Lining'", "600 100px 'Cormorant Garamond'", "500 40px 'IBM Plex Mono'", "600 40px 'IBM Plex Mono'", "700 100px 'Noto Serif KR'"];
+  const faces = ["italic 500 60px 'Cormorant Garamond'", "600 100px 'Cormorant Lining'", "600 100px 'Cormorant Garamond'", "500 40px 'IBM Plex Mono'", "600 40px 'IBM Plex Mono'", "700 100px 'Noto Serif KR'"];
   for (const f of faces) await document.fonts.load(f, f.includes("KR") ? "한글ㅎㄱ하그" : "ABC123°,'");
   const imgs = {}; for (const n of IMAGE_NAMES) imgs[n] = await loadImage(n);
   setImages(imgs);
