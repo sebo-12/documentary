@@ -69,7 +69,8 @@ station(126.19, 41.13, 3.2, 0.24, b(3).start + 1.6, b(3).end - 0.6, "Ji'an");
 station(129.22, 35.84, 3.2, 0.32, b(4).start + 2.0, b(4).end - 0.4, "Gyeongju");
 station(126.55, 37.97, 2.6, 0.24, b(5).start + 2.0, b(6).end - 0.3, "Kaesong");
 station(126.98, 37.57, 2.6, 0.24, b(7).start + 1.4, b(8).end - 0.3, "Seoul");
-station(126.31, 34.57, 2.4, 0.32, b(9).start + 3.2, b(9).end - 0.6, "Myeongnyang");
+station(127.9, 34.9, 5.0, 0.5, b(9).start + 1.6, b(9).start + 2.8, "south");
+station(126.31, 34.57, 2.4, 0.32, b(9).start + 5.0, b(9).end - 0.6, "Myeongnyang");
 station(126.98, 37.57, 3.0, 0.24, b(10).start + 1.5, b(10).end - 0.6, "Seoul2");
 station(124.6, 34.5, 12.5, 0.5, b(11).start + 1.0, b(11).end - 0.3, "Shanghai");
 station(127.4, 38.0, 4.6, 0.5, b(12).start + 2.6, b(12).end - 0.2, "38th");
@@ -79,7 +80,7 @@ const HAN = [[127.33, 37.55], [127.17, 37.53], [127.03, 37.52], [126.93, 37.535]
 station(127.33, 37.55, 1.7, 0.24, b(14).start + 0.9, b(14).start + 1.1, "Han0");
 station(126.98, 37.57, 3.2, 0.24, b(15).start + 1.2, b(15).end - 0.2, "Seoul3");
 // arrives after the film ends, so the closing pull back is still gliding at the last frame
-station(125.6, 37.6, 18.5, 0.5, END + 2.5, END + 10, "final");
+station(125.6, 37.6, 18.5, 0.5, END + 3.0, END + 12, "final");
 
 function hanAt(s) { // position along the river polyline, s in 0..1
   const seg = HAN.length - 1, f = clamp(s) * seg, i = Math.min(seg - 1, Math.floor(f)), u = f - i;
@@ -88,8 +89,12 @@ function hanAt(s) { // position along the river polyline, s in 0..1
 
 const DRIFT = 6; // px per second during holds
 function driftVec(i) { // world units/s at station i, pointing toward the next station
-  const a = view(ST[i]), n = ST[i + 1] ? view(ST[i + 1]) : a;
-  let dx = n[0] - a[0], dy = n[1] - a[1]; const L = Math.hypot(dx, dy) || 1;
+  const a = view(ST[i]);
+  // the last station keeps drifting the way the camera came in, so it never stops dead
+  let dx, dy;
+  if (ST[i + 1]) { const n = view(ST[i + 1]); dx = n[0] - a[0]; dy = n[1] - a[1]; }
+  else { const pv = view(ST[i - 1]); dx = a[0] - pv[0]; dy = a[1] - pv[1]; }
+  const L = Math.hypot(dx, dy) || 1;
   const z = W / a[2];
   return [dx / L * DRIFT / z, dy / L * DRIFT / z];
 }
@@ -148,6 +153,7 @@ const PINS = [
 // each: kind, text, t0 (appears), t1 (gone), hy (screen y fraction of its centre)
 const HY_LOW = 0.665, HY_MID = 0.52;
 const HEROES = [
+  { kind: "counter", text: "700,000", t0: wt(1, "700") - 0.05, sub: "YEARS AGO", subT: wt(1, "years"), beat: 1, hy: 0.5, out: 2.9 },
   { kind: "circle", text: "676", t0: b(4).start - 0.05, circle: cue(4), beat: 4, hy: HY_LOW },
   { kind: "type", text: "KOREA", t0: wt(5, "korea") - 0.08, beat: 5, hy: HY_LOW, width: 0.66 },
   { kind: "hangeul", text: "한글", t0: wt(8, "hangul") - 0.1, beat: 8, hy: 0.6 },
@@ -179,6 +185,7 @@ const FINAL = {
   expressway: [0.84, 0.83, PL.seoul], armistice: [0.66, 0.86, PL.kaesong],
 };
 const FINAL_T0 = END - 1.65; // as the last hero fades
+HEROES.push({ kind: "endcard", t0: END + 0.35, beat: 16, hy: 0.42, out: 1e9 });
 for (const h of HEROES) h.t1 = h.out ?? (b(h.beat).end + 0.5);
 const objLive = (o, t) => clamp((t - o.td) / 0.25) * (1 - smooth((t - (o.t1 - 0.45)) / 0.45));
 const heroAlpha = (h, t) => clamp((t - h.t0) / 0.25) * (1 - smooth((t - (h.t1 - 0.45)) / 0.45));
@@ -191,6 +198,10 @@ const TERR = [
 ];
 const TERR_IN = b(2).start, TERR_OUT0 = b(4).start + 1.5, TERR_OUT1 = b(4).end;
 const LINE38 = { t0: cue(12), lon0: 124.2, lon1: 129.7 };
+const ARROWS = [
+  { from: [126.19, 41.13], to: [124.6, 41.5], bend: -0.18, t0: wt(3, "pushes") - 0.05, t1: b(3).end + 0.3 },
+  { from: [130.7, 33.8], to: [129.12, 35.0], bend: 0.22, t0: wt(9, "invades") - 0.1, t1: b(9).start + 3.6 },
+];
 
 // ---------- assets built once ----------
 let grain = [], dust = [], stampCanvas, glowC, worldC, tmpC;
@@ -341,14 +352,16 @@ function drawObjects(g, t, cam, dim) {
 function drawFinal(g, t, cam) {
   if (t < FINAL_T0) return;
   const zNow = W / cam[2];
-  let heroDim = 0; for (const h of HEROES) heroDim = Math.max(heroDim, heroAlpha(h, t));
+  let heroDim = 0; for (const h of HEROES) if (h.kind !== "endcard") heroDim = Math.max(heroDim, heroAlpha(h, t));
+  const out = 1 - smooth((t - (END + 0.2)) / 0.6); // thumbnails clear the stage for the end card
+  if (out <= 0) return;
   for (const o of OBJECTS) {
     if (t < o.ft) continue;
-    const p = easeOut((t - o.ft) / 0.4), a = clamp((t - o.ft) / 0.2);
+    const p = easeOut((t - o.ft) / 0.4), a = clamp((t - o.ft) / 0.2) * out;
     const [sx, sy] = toScreen(cam, t, o.fwx, o.fwy), [px, py] = toScreen(cam, t, ...o.place);
     // red connector to the place, drawn on
     const lp = easeOut((t - o.ft - 0.15) / 0.5);
-    if (lp > 0) { g.save(); g.strokeStyle = RED; g.globalAlpha = 0.75 * (1 - 0.6 * heroDim); g.lineWidth = 2; g.beginPath(); g.moveTo(sx, sy); g.lineTo(lerp(sx, px, lp), lerp(sy, py, lp)); g.stroke(); g.restore(); }
+    if (lp > 0) { g.save(); g.strokeStyle = RED; g.globalAlpha = 0.75 * (1 - 0.6 * heroDim) * out; g.lineWidth = 2; g.beginPath(); g.moveTo(sx, sy); g.lineTo(lerp(sx, px, lp), lerp(sy, py, lp)); g.stroke(); g.restore(); }
     const sc = (zNow / o.fz) * o.fk * (1 + 0.15 * (1 - p));
     g.save(); g.translate(sx, sy - 20 * (1 - p)); g.rotate(o.rot * Math.PI / 180); g.scale(sc, sc);
     g.globalAlpha = a; g.shadowColor = "rgba(0,4,8,0.6)"; g.shadowBlur = 14 / sc * 0.5; g.shadowOffsetY = 6 / sc * 0.5;
@@ -432,6 +445,19 @@ function drawWorld(g, t) {
     g.fillStyle = PAPER; g.shadowColor = "rgba(5,14,22,0.95)"; g.shadowBlur = 16;
     g.fillText(tr.name, sx, sy + 8 * (1 - easeOut(a))); g.restore();
   }
+  // arrows: drawn on over 0.7 s, curved, with a head
+  for (const ar of ARROWS) {
+    const p = easeInOutSine((t - ar.t0) / 0.7), fa = 1 - smooth((t - (ar.t1 - 0.4)) / 0.4);
+    if (p <= 0 || fa <= 0) continue;
+    const A = toScreen(cam, t, ...P(...ar.from)), B = toScreen(cam, t, ...P(...ar.to));
+    const mx = (A[0] + B[0]) / 2 - (B[1] - A[1]) * ar.bend, my = (A[1] + B[1]) / 2 + (B[0] - A[0]) * ar.bend;
+    const pts = []; for (let k = 0; k <= 40; k++) { const u = k / 40, v = 1 - u; pts.push([v * v * A[0] + 2 * v * u * mx + u * u * B[0], v * v * A[1] + 2 * v * u * my + u * u * B[1]]); }
+    g.save(); g.globalAlpha = fa; g.strokeStyle = RED; g.fillStyle = RED; g.lineWidth = 5; g.lineCap = "round"; g.lineJoin = "round";
+    strokePartial(g, pts, p);
+    const k = Math.max(1, Math.round(40 * p)), [hx, hy] = pts[k], [qx, qy] = pts[k - 1], ang = Math.atan2(hy - qy, hx - qx);
+    if (p > 0.05) { g.translate(hx, hy); g.rotate(ang); g.beginPath(); g.moveTo(10, 0); g.lineTo(-14, -11); g.lineTo(-14, 11); g.closePath(); g.fill(); }
+    g.restore();
+  }
   // 38°N label
   if (l38 >= 1) {
     const a = clamp((t - LINE38.t0 - 0.5) / 0.3) * (1 - smooth((t - (b(12).end + 0.2)) / 0.5));
@@ -479,6 +505,8 @@ function drawHeroes(g, t) {
     else if (h.kind === "hangeul") drawHangeul(g, h, t, a, cy);
     else if (h.kind === "ships") drawShips(g, h, t, a, cy);
     else if (h.kind === "stamp") drawStamp(g, h, t, a, cy);
+    else if (h.kind === "counter") drawCounter(g, h, t, a, cy);
+    else if (h.kind === "endcard") drawEndCard(g, h, t, a, cy);
     g.restore();
   }
 }
@@ -544,6 +572,27 @@ function drawHangeul(g, h, t, a, cy) {
   if (u > 0) { g.shadowBlur = 0; g.fillStyle = RED; g.fillRect(W / 2 - 130, cy + fs * 0.36 + 46, 260 * u, 7); }
 }
 
+function drawCounter(g, h, t, a, cy) {
+  const v = Math.round(700000 * easeOut((t - h.t0) / 1.0));
+  const txt = v.toLocaleString("en-US");
+  g.font = `500 230px ${MONO}`; g.letterSpacing = "6px"; g.textAlign = "center"; g.textBaseline = "alphabetic";
+  g.globalAlpha = a; g.fillText(txt, W / 2, cy + 40);
+  const sa = clamp((t - h.subT) / 0.3);
+  if (sa > 0) { g.font = `500 56px ${MONO}`; g.letterSpacing = "18px"; g.globalAlpha = a * sa; g.fillText(h.sub, W / 2 + 9, cy + 140); }
+  g.textAlign = "left";
+}
+function drawEndCard(g, h, t, a, cy) {
+  g.textAlign = "center"; g.textBaseline = "alphabetic";
+  const ta = clamp((t - h.t0) / 0.6);
+  g.globalAlpha = a * ta; g.font = `600 230px ${SERIF}`; g.letterSpacing = "40px"; g.fillText("KOREA", W / 2 + 20, cy + 60 - 12 * (1 - easeOut(ta)));
+  g.shadowBlur = 0; g.fillStyle = RED; const u = easeOut((t - h.t0 - 0.5) / 0.6); g.fillRect(W / 2 - 150, cy + 110, 300 * u, 6);
+  g.fillStyle = PAPER; g.shadowBlur = 20;
+  const ca = clamp((t - h.t0 - 1.0) / 0.6); g.globalAlpha = a * ca * 0.85;
+  g.font = `500 30px ${MONO}`; g.letterSpacing = "3px";
+  ["IMAGES: WIKIMEDIA COMMONS", "TAEWANGKOREA, YUMETO, TRAINHOLIC (CC BY-SA 4.0)", "BRADY BELLINI (CC0), PUBLIC DOMAIN SCANS",
+   "MAP: NATURAL EARTH. MUSIC AND SOUND MADE IN CODE"].forEach((l, i) => g.fillText(l, W / 2, cy + 230 + i * 46));
+  g.textAlign = "left";
+}
 function slamScale(t, t0) { // 1.6 -> 1 accelerating, tiny overshoot
   const s = (t - t0) / 0.12; if (s < 1) return lerp(1.6, 0.97, easeIn(s));
   return 1 - 0.03 * Math.exp(-(t - t0 - 0.12) * 18) * Math.cos((t - t0 - 0.12) * 40);
@@ -658,6 +707,8 @@ export function audioEvents() {
     if (h.kind === "stamp") ev.push({ type: "stamp", t: h.t0 + 0.11 });
   }
   ev.push({ type: "pen", t: LINE38.t0, dur: 0.5 });
+  for (const ar of ARROWS) ev.push({ type: "pen", t: ar.t0, dur: 0.7 });
+  for (let i = 0; i < 12; i++) ev.push({ type: "key", t: HEROES[0].t0 + i * 0.07 });
   ev.push({ type: "pen", t: TERR_IN + 0.3, dur: 1.3, soft: 1 });
   return ev.sort((a, b) => a.t - b.t);
 }

@@ -20,7 +20,8 @@ function wavDuration(p) {
   let o = 12; while (o < b.length) { const id = b.toString("ascii", o, o + 4), sz = b.readUInt32LE(o + 4); if (id === "data") return sz / (sr * ch * bits / 8); o += 8 + sz; }
   throw new Error("no data chunk");
 }
-const DUR = wavDuration(wav);
+const VO = wavDuration(wav), TAIL = +(process.env.TAIL ?? 4.5);
+const DUR = VO + TAIL; // narration plus the end card
 const NFRAMES = Math.round(DUR * FPS);
 
 async function openPages(n, width) {
