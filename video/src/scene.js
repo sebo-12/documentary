@@ -177,6 +177,10 @@ const OBJECTS = [
   { img: "expressway", kind: "polaroid", beat: 14, td: b(14).start + 0.9, sx: 0.5, sy: 0.6, box: [760, 500], rot: -2, tRef: (b(14).start + b(14).end) / 2 },
 ];
 for (const o of OBJECTS) o.t1 = b(o.beat).end + 0.5;
+// catalogue captions (Archive Light Table): what the record says that the narration does not
+const CAPTIONS = { stele: ["AD 414", ["6.39 M HIGH", "37 TONNES"]], jikji: ["HELD TODAY BY THE", ["NATIONAL LIBRARY", "OF FRANCE"]], gyeongbokgung: ["MAIN PALACE", ["GYEONGBOKGUNG"]], hunminjeongeum: ["THE ORIGINAL TEXT", ["HUNMINJEONGEUM", "HAERYE"]],
+  declaration: ["SIGNED BY", ["33 NATIONAL", "REPRESENTATIVES"]], armistice: ["SIGNED AT PANMUNJOM", ["JULY 27, 1953"]], expressway: ["GYEONGBU EXPRESSWAY", ["OPENED 1970"], "PHOTO: RECENT"] };
+for (const o of OBJECTS) if (CAPTIONS[o.img]) { o.cap = CAPTIONS[o.img]; o.capAt = o.td + 0.75; }
 // closing shot: screen position (at the last frame) and the story place each thumbnail links to
 const PL = { ganghwa: [126.49, 37.75], jian: [126.19, 41.13], kaesong: [126.55, 37.97], seoul: [126.98, 37.57] };
 const FINAL = {
@@ -346,6 +350,7 @@ function drawObjects(g, t, cam, dim) {
     if (o.overlay) shade = Math.max(shade, 0.6 * clamp((t - o.overlay) / 0.3) * objLive(o, t));
     if (shade > 0.001) { g.globalAlpha = shade * 0.62; g.fillStyle = "rgb(8,20,30)"; g.fillRect(-o.cw / 2 - 2, -o.ch / 2 - 2, o.cw + 4, o.ch + 4); }
     g.restore();
+    if (o.cap && t > o.capAt) drawCaption(g, o, t, a, sx, sy, zNow / o.zRef);
   }
 }
 
@@ -370,6 +375,28 @@ function drawFinal(g, t, cam) {
     if (heroDim > 0) { g.globalAlpha = 0.55 * heroDim; g.fillStyle = "rgb(8,20,30)"; g.fillRect(-o.cw / 2 - 2, -o.ch / 2 - 2, o.cw + 4, o.ch + 4); }
     g.restore();
   }
+}
+
+function drawCaption(g, o, t, a, sx, sy, sc) {
+  const [label, lines, src] = o.cap, ca = easeOut((t - o.capAt) / 0.45) * a;
+  g.save(); g.font = `500 30px ${MONO}`; g.letterSpacing = "2px";
+  let wMax = Math.max(...lines.map((l) => g.measureText(l).width), 180);
+  g.font = `500 22px ${MONO}`; g.letterSpacing = "3px"; wMax = Math.max(wMax, g.measureText(label).width) + 44;
+  const hPlate = 52 + lines.length * 40 + (src ? 30 : 0);
+  // to the right of the object, or under it when there is no room
+  let px = sx + (o.cw / 2) * sc + 46, py = sy - hPlate / 2, ax = sx + (o.cw / 2) * sc, ay = sy, horiz = true;
+  if (px + wMax > W - 80) { px = sx - (o.cw / 2) * sc; py = sy - (o.ch / 2) * sc - 34 - hPlate; ax = px + 30; ay = py + hPlate + 34; horiz = false; }
+  // anchor dot and leader, then the plate wipes in from the leader side
+  g.globalAlpha = ca; g.fillStyle = RED; g.strokeStyle = RED; g.lineWidth = 2;
+  g.beginPath(); g.arc(ax, ay, 5, 0, 7); g.fill();
+  g.beginPath(); g.moveTo(ax, ay); horiz ? g.lineTo(px, ay) : g.lineTo(ax, py); g.stroke();
+  g.beginPath(); g.rect(px, py, wMax * ca, hPlate); g.clip();
+  g.fillStyle = "rgba(14,15,17,0.78)"; g.fillRect(px, py, wMax, hPlate); g.fillStyle = RED; g.fillRect(px, py, 3, hPlate);
+  g.fillStyle = PAPER; g.textBaseline = "top"; g.textAlign = "left";
+  g.globalAlpha = ca * 0.7; g.font = `500 22px ${MONO}`; g.letterSpacing = "3px"; g.fillText(label, px + 22, py + 16);
+  g.globalAlpha = ca; g.font = `500 30px ${MONO}`; g.letterSpacing = "2px"; lines.forEach((l, i) => g.fillText(l, px + 22, py + 48 + i * 40));
+  if (src) { g.globalAlpha = ca * 0.55; g.font = `500 20px ${MONO}`; g.fillText(src, px + 22, py + 52 + lines.length * 40); }
+  g.restore();
 }
 
 function drawWorld(g, t) {
@@ -696,6 +723,7 @@ export function audioEvents() {
   for (const p of PINS) ev.push({ type: "pin", t: p.on });
   for (const o of OBJECTS) {
     ev.push({ type: "paper", t: o.td + 0.3 });
+    if (o.cap) ev.push({ type: "pin", t: o.capAt + 0.1 });
     if (o.caption) [...o.caption].forEach((c, i) => ev.push({ type: "key", t: o.capT + i * 0.045 }));
     ev.push({ type: "paper_soft", t: o.ft + 0.25 });
   }
